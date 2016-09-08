@@ -107,20 +107,11 @@ simpleExprInv = tok' Tok.LTokBitInv *> pure Syn.SETilde
 
 simpleExprNot :: Parser (Syn.SimpleExpr -> Syn.SimpleExpr)
 simpleExprNot = tok' Tok.LTokNot *> pure Syn.SENot
-
--- simpleExprUOp :: Parser (Syn.SimpleExpr -> Syn.SimpleExpr)
--- simpleExprUOp = simpleExprPlus
---                 <|> simpleExprMinus
---                 <|> simpleExprInv
---                 <|> simpleExprNot
   
 simpleExprOr :: Parser (Syn.SimpleExpr -> Syn.SimpleExpr -> Syn.SimpleExpr)
 simpleExprOr = do
   tok' Tok.LTokOr
   return Syn.SEOr
-
--- simpleExprBinOp :: Parser (Syn.SimpleExpr -> Syn.SimpleExpr -> Syn.SimpleExpr)
--- simpleExprBinOp = simpleExprOr
 
 simpleExprList :: Parser Syn.SimpleExpr
 simpleExprList = do
@@ -131,10 +122,6 @@ simpleExprList = do
 
 simpleExprTerm :: Parser Syn.SimpleExpr
 simpleExprTerm = choice [ litExpr, identExpr, simpleExprList ]
-
--- simpleExpr :: Parser Syn.SimpleExpr
--- simpleExpr = simpleExprUOp <*> simpleExpr
---              <|> simpleExprTerm `chainl1` simpleExprBinOp
 
 simpleExpr :: Parser Syn.SimpleExpr
 simpleExpr = ParExp.buildExpressionParser simpleExprTable simpleExprTerm
@@ -194,27 +181,8 @@ bitExprMod = tok' Tok.LTokMod *> pure Syn.BitMod
 bitExprXOr :: Parser (Syn.BitExpr -> Syn.BitExpr -> Syn.BitExpr)
 bitExprXOr = tok' Tok.LTokBitXOr *> pure Syn.BitXOr
 
--- bitExprBinOp :: Parser (Syn.BitExpr -> Syn.BitExpr -> Syn.BitExpr)
--- bitExprBinOp = bitExprOr
---                <|> bitExprAnd
---                <|> bitExprLShift
---                <|> bitExprRShift
---                <|> bitExprAdd
---                <|> bitExprSub
---                <|> bitExprMul
---                <|> bitExprDiv
---                <|> bitExprIntDiv
---                <|> bitExprMod
---                <|> bitExprXOr
-
 bitExprTerm :: Parser Syn.BitExpr
 bitExprTerm = Syn.SimpleExpr <$> simpleExpr
-
--- bitExprSimpleExpr :: Parser Syn.BitExpr
--- bitExprSimpleExpr = Syn.SimpleExpr <$> simpleExpr
-
--- bitExpr :: Parser Syn.BitExpr
--- bitExpr = bitExprSimpleExpr `chainl1` bitExprBinOp
 
 bitExpr :: Parser Syn.BitExpr
 bitExpr = ParExp.buildExpressionParser bitExprTable bitExprTerm
@@ -250,19 +218,8 @@ predExpr = try predInExprList
 -- =, <=>, >=, >, <=, <, <>, !=, IS
 -- NOT
 
--- BP -> BP <=> P
--- BP -> P BP'
--- BP' -> <=> P BP'
--- BP' ->
-
 boolTerm :: Parser Syn.BooleanPrimary
 boolTerm = Syn.Predicate <$> predExpr
-
--- boolSafeNotEqExpr = do
---   tok' Tok.LTokSafeNotEq
---   t <- predExpr
---   e <- boolSafeNotEqExpr
---   return $ (flip Syn.BPSafeNotEq) t
 
 chainl1' :: Parser a -> Parser (b -> a -> b) -> (a -> b) -> Parser b
 chainl1' p op ctor = p >>= (rest . ctor)
@@ -347,16 +304,8 @@ exprXOr = tok' Tok.LTokXOr *> pure Syn.EXOr
 exprAnd :: Parser (Syn.Expr -> Syn.Expr -> Syn.Expr)
 exprAnd = tok' Tok.LTokAnd *> pure Syn.EAnd
 
--- exprBinOp :: Parser (Syn.Expr -> Syn.Expr -> Syn.Expr)
--- exprBinOp = exprOr
---             <|> exprXOr
---             <|> exprAnd
-
 exprNot :: Parser (Syn.Expr -> Syn.Expr)
 exprNot = tok' Tok.LTokNot *> pure Syn.ENot
-
--- exprUOp :: Parser (Syn.Expr -> Syn.Expr)
--- exprUOp = exprNot
 
 exprIsExpr :: Parser Syn.Expr
 exprIsExpr = do
