@@ -15,17 +15,19 @@ data Expr = EOr Expr Expr
 --                     deriving (Eq, Show)
 
 -- Bumped up Predicate term into BooleanPrimary to use chainl1
-data BooleanPrimary = BPSafeNotEq BooleanPrimary BooleanPrimary
-                    | BPEq BooleanPrimary BooleanPrimary
-                    | BPGte BooleanPrimary BooleanPrimary
-                    | BPGt BooleanPrimary BooleanPrimary
-                    | BPLte BooleanPrimary BooleanPrimary
-                    | BPLt BooleanPrimary BooleanPrimary
-                    | BPNotEq BooleanPrimary BooleanPrimary
+data BooleanPrimary = BPSafeNotEq BooleanPrimary Predicate
+                    | BPEq BooleanPrimary Predicate
+                    | BPGte BooleanPrimary Predicate
+                    | BPGt BooleanPrimary Predicate
+                    | BPLte BooleanPrimary Predicate
+                    | BPLt BooleanPrimary Predicate
+                    | BPNotEq BooleanPrimary Predicate
                     | Predicate Predicate
                     deriving (Eq, Show)
 
-data Predicate = BitExpr BitExpr
+data Predicate = PredInExprList BitExpr SimpleExpr
+               | PredNotInExprList BitExpr SimpleExpr
+               | BitExpr BitExpr
                deriving (Eq, Show)
 
 data BitExpr = BitOr BitExpr BitExpr
@@ -49,7 +51,7 @@ data SimpleExpr = Lit Literal
                 | SEMinus SimpleExpr
                 | SETilde SimpleExpr
                 | SENot SimpleExpr
-                | SEList [SimpleExpr]
+                | SEList [Expr]
                 deriving (Eq, Show)
 
 data Literal = BLit Bool

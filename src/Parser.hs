@@ -125,7 +125,7 @@ simpleExprOr = do
 simpleExprList :: Parser Syn.SimpleExpr
 simpleExprList = do
   tok' Tok.LTokOpenPar
-  exprs <- sepBy1 simpleExpr (tok' Tok.LTokComma)
+  exprs <- sepBy1 parseExpr (tok' Tok.LTokComma)
   tok' Tok.LTokClosePar
   return $ Syn.SEList exprs
 
@@ -219,97 +219,155 @@ bitExprTerm = Syn.SimpleExpr <$> simpleExpr
 bitExpr :: Parser Syn.BitExpr
 bitExpr = ParExp.buildExpressionParser bitExprTable bitExprTerm
 
+-- | Predicate Expressions
+--
+predInExprList :: Parser Syn.Predicate
+predInExprList = do
+  e1 <- bitExpr
+  tok' Tok.LTokIn
+  e2 <- simpleExprList
+  return $ Syn.PredInExprList e1 e2
+
+predNotInExprList :: Parser Syn.Predicate
+predNotInExprList = do
+  e1 <- bitExpr
+  tok' Tok.LTokNot
+  tok' Tok.LTokIn
+  e2 <- simpleExprList
+  return $ Syn.PredNotInExprList e1 e2
+
+predTerm :: Parser Syn.Predicate
+predTerm = Syn.BitExpr <$> bitExpr
+
 predExpr :: Parser Syn.Predicate
-predExpr = Syn.BitExpr <$> bitExpr
+predExpr = try predInExprList
+           <|> try predNotInExprList
+           <|> predTerm
 
-boolPredSafeNotEq :: Parser (Syn.BooleanPrimary -> Syn.BooleanPrimary -> Syn.BooleanPrimary)
-boolPredSafeNotEq = do
-  tok' Tok.LTokSafeNotEq
-  return Syn.BPSafeNotEq
+-- | Boolean Primary Expressions
+-- 
+-- Operator Precedences
+-- =, <=>, >=, >, <=, <, <>, !=, IS
+-- NOT
 
-boolPredEq :: Parser (Syn.BooleanPrimary -> Syn.BooleanPrimary -> Syn.BooleanPrimary)
-boolPredEq = do
-  tok' Tok.LTokEq
-  return Syn.BPEq
+-- BP -> BP <=> P
+-- BP -> P BP'
+-- BP' -> <=> P BP'
+-- BP' ->
 
-boolPredGte :: Parser (Syn.BooleanPrimary -> Syn.BooleanPrimary -> Syn.BooleanPrimary)
-boolPredGte = do
-  tok' Tok.LTokGTE
-  return Syn.BPGte
+boolTerm :: Parser Syn.BooleanPrimary
+boolTerm = Syn.Predicate <$> predExpr
 
-boolPredGt :: Parser (Syn.BooleanPrimary -> Syn.BooleanPrimary -> Syn.BooleanPrimary)
-boolPredGt = do
-  tok' Tok.LTokGT
-  return Syn.BPGt
+-- boolSafeNotEqExpr = do
+--   tok' Tok.LTokSafeNotEq
+--   t <- predExpr
+--   e <- boolSafeNotEqExpr
+--   return $ (flip Syn.BPSafeNotEq) t
 
-boolPredLte :: Parser (Syn.BooleanPrimary -> Syn.BooleanPrimary -> Syn.BooleanPrimary)
-boolPredLte = do
-  tok' Tok.LTokLTE
-  return Syn.BPLte
+chainl1' :: Parser a -> Parser (b -> a -> b) -> (a -> b) -> Parser b
+chainl1' p op ctor = p >>= (rest . ctor)
+  where rest ctx =
+          do
+            f <- op
+            y <- p
+            rest $ f ctx y
+          <|> return ctx
 
-boolPredLt :: Parser (Syn.BooleanPrimary -> Syn.BooleanPrimary -> Syn.BooleanPrimary)
-boolPredLt = do
-  tok' Tok.LTokLT
-  return Syn.BPLt
+boolSafeNotEqOp :: Parser (Syn.BooleanPrimary -> Syn.Predicate -> Syn.BooleanPrimary)
+boolSafeNotEqOp = tok' Tok.LTokSafeNotEq *> pure Syn.BPSafeNotEq
 
-boolPredNotEq :: Parser (Syn.BooleanPrimary -> Syn.BooleanPrimary -> Syn.BooleanPrimary)
-boolPredNotEq = do
-  tok' Tok.LTokNotEq
-  return Syn.BPNotEq
+boolSafeNotEq :: Parser Syn.BooleanPrimary
+boolSafeNotEq = chainl1' predExpr boolSafeNotEqOp Syn.Predicate
 
-boolPredBinOp :: Parser (Syn.BooleanPrimary -> Syn.BooleanPrimary -> Syn.BooleanPrimary)
-boolPredBinOp = boolPredSafeNotEq
-                <|> boolPredEq
-                <|> boolPredGte
-                <|> boolPredGt
-                <|> boolPredLte
-                <|> boolPredLt
-                <|> boolPredNotEq
+boolEqOp :: Parser (Syn.BooleanPrimary -> Syn.Predicate -> Syn.BooleanPrimary)
+boolEqOp = tok' Tok.LTokEq *> pure Syn.BPEq
 
-boolPredTerm :: Parser Syn.BooleanPrimary
-boolPredTerm = Syn.Predicate <$> predExpr
+boolEq :: Parser Syn.BooleanPrimary
+boolEq = chainl1' predExpr boolEqOp Syn.Predicate
 
-boolPredExpr :: Parser Syn.BooleanPrimary
-boolPredExpr = boolPredTerm `chainl1` boolPredBinOp
+boolGTEOp :: Parser (Syn.BooleanPrimary -> Syn.Predicate -> Syn.BooleanPrimary)
+boolGTEOp = tok' Tok.LTokGTE *> pure Syn.BPGte
+
+boolGTE :: Parser Syn.BooleanPrimary
+boolGTE = chainl1' predExpr boolGTEOp Syn.Predicate
+
+boolGTOp :: Parser (Syn.BooleanPrimary -> Syn.Predicate -> Syn.BooleanPrimary)
+boolGTOp = tok' Tok.LTokGT *> pure Syn.BPGt
+
+boolGT :: Parser Syn.BooleanPrimary
+boolGT = chainl1' predExpr boolGTOp Syn.Predicate
+
+boolLTEOp :: Parser (Syn.BooleanPrimary -> Syn.Predicate -> Syn.BooleanPrimary)
+boolLTEOp = tok' Tok.LTokLTE *> pure Syn.BPLte
+
+boolLTE :: Parser Syn.BooleanPrimary
+boolLTE = chainl1' predExpr boolLTEOp Syn.Predicate
+
+boolLTOp :: Parser (Syn.BooleanPrimary -> Syn.Predicate -> Syn.BooleanPrimary)
+boolLTOp = tok' Tok.LTokLT *> pure Syn.BPLt
+
+boolLT :: Parser Syn.BooleanPrimary
+boolLT = chainl1' predExpr boolLTOp Syn.Predicate
+
+boolNotEqOp :: Parser (Syn.BooleanPrimary -> Syn.Predicate -> Syn.BooleanPrimary)
+boolNotEqOp = tok' Tok.LTokNotEq *> pure Syn.BPNotEq
+
+boolNotEq :: Parser Syn.BooleanPrimary
+boolNotEq = chainl1' predExpr boolNotEqOp Syn.Predicate
+
+boolPExpr :: Parser Syn.BooleanPrimary
+boolPExpr = try boolSafeNotEq
+            <|> try boolEq
+            <|> try boolGTE
+            <|> try boolGT
+            <|> try boolLTE
+            <|> try boolLT
+            <|> try boolNotEq
+
+-- | Expression Operator Precedence
+-- !
+-- NOT
+-- AND, &&
+-- XOR
+-- OR, ||
+
+exprTable :: [[ParExp.Operator [Tok.LToken] () Identity Syn.Expr]]
+exprTable = [ [ParExp.Prefix exprNot],
+              [ParExp.Infix exprAnd ParExp.AssocLeft],
+              [ParExp.Infix exprXOr ParExp.AssocLeft],
+              [ParExp.Infix exprOr ParExp.AssocLeft]
+            ]
 
 exprOr :: Parser (Syn.Expr -> Syn.Expr -> Syn.Expr)
-exprOr = do
-  tok' Tok.LTokOr
-  return Syn.EOr
+exprOr = tok' Tok.LTokOr *> pure Syn.EOr
 
 exprXOr :: Parser (Syn.Expr -> Syn.Expr -> Syn.Expr)
-exprXOr = do
-  tok' Tok.LTokXOr
-  return Syn.EXOr
+exprXOr = tok' Tok.LTokXOr *> pure Syn.EXOr
 
 exprAnd :: Parser (Syn.Expr -> Syn.Expr -> Syn.Expr)
-exprAnd = do
-  tok' Tok.LTokAnd
-  return Syn.EAnd
+exprAnd = tok' Tok.LTokAnd *> pure Syn.EAnd
 
-exprBinOp :: Parser (Syn.Expr -> Syn.Expr -> Syn.Expr)
-exprBinOp = exprOr
-            <|> exprXOr
-            <|> exprAnd
+-- exprBinOp :: Parser (Syn.Expr -> Syn.Expr -> Syn.Expr)
+-- exprBinOp = exprOr
+--             <|> exprXOr
+--             <|> exprAnd
 
 exprNot :: Parser (Syn.Expr -> Syn.Expr)
-exprNot = do
-  tok' Tok.LTokNot
-  return Syn.ENot
+exprNot = tok' Tok.LTokNot *> pure Syn.ENot
 
-exprUOp :: Parser (Syn.Expr -> Syn.Expr)
-exprUOp = exprNot
+-- exprUOp :: Parser (Syn.Expr -> Syn.Expr)
+-- exprUOp = exprNot
 
 exprIsExpr :: Parser Syn.Expr
 exprIsExpr = do
-  bp <- boolPredExpr
+  bp <- boolPExpr
   tok' Tok.LTokIs
   tOrF <- tok Tok.LTokTrue <|> tok Tok.LTokFalse
   return $ Syn.BIs bp (tOrF == Tok.LTokTrue)
   
 exprIsNotExpr :: Parser Syn.Expr
 exprIsNotExpr = do
-  bp <- boolPredExpr
+  bp <- boolPExpr
   tok' Tok.LTokIs
   tok' Tok.LTokNot
   tOrF <- tok Tok.LTokTrue <|> tok Tok.LTokFalse
@@ -318,8 +376,7 @@ exprIsNotExpr = do
 exprTerm :: Parser Syn.Expr
 exprTerm = try exprIsExpr
            <|> try exprIsNotExpr
-           <|> Syn.BooleanPrimary <$> boolPredExpr
+           <|> Syn.BooleanPrimary <$> boolPExpr
 
 parseExpr :: Parser Syn.Expr
-parseExpr = exprTerm `chainl1` exprBinOp
-            <|> exprUOp <*> parseExpr
+parseExpr = ParExp.buildExpressionParser exprTable exprTerm
