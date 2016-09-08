@@ -4,17 +4,17 @@ module Token where
 data LToken = LTokAdd           -- ADD (R)
             | LTokAll           -- ALL (R)
             | LTokAlter         -- ALTER (R)
-            | LTokAnd           -- AND (R)
+            -- | LTokAnd           -- AND (R)
             | LTokAs            -- AS (R)
             | LTokAsc           -- ASC (R)
             | LTokBefore        -- BEFORE (R)
             | LTokBetween       -- BETWEEN (R)
             | LTokBigInt        -- BIGINT (R)
-            | LTokBinary        -- BINARY (R)
+            -- | LTokBinary        -- BINARY (R)
             | LTokBlob          -- BLOB (R)
             | LTokBoth          -- BOTH (R)
             | LTokBy            -- BY (R)
-            | LTokCase          -- CASE (R)
+            -- | LTokCase          -- CASE (R)
             | LTokChar          -- CHAR (R)
             | LTokCharacter     -- CHARACTER (R)
             | LTokCollate       -- COLLATE (R)
@@ -28,7 +28,7 @@ data LToken = LTokAdd           -- ADD (R)
             | LTokDelete        -- DELETE (R)
             | LTokDesc          -- DESC (R)
             | LTokDistinct      -- DISTINCT (R)
-            | LTokDiv           -- DIV (R)
+            -- | LTokIntDiv        -- DIV (R)
             | LTokDouble        -- DOUBLE (R)
             | LTokDrop          -- DROP (R)
             | LTokExists        -- EXISTS (R)
@@ -47,21 +47,21 @@ data LToken = LTokAdd           -- ADD (R)
             | LTokInt           -- INT (R)
             | LTokInteger       -- INTEGER (R)
             | LTokInterval      -- INTERVAL (R)
-            | LTokIs            -- IS (R)
+            -- | LTokIs            -- IS (R)
             | LTokJoin          -- JOIN (R)
             | LTokKey           -- KEY (R)
             | LTokKeys          -- KEYS (R)
             | LTokLeft          -- LEFT (R)
-            | LTokLike          -- LIKE (R)
+            -- | LTokLike          -- LIKE (R)
             | LTokLimit         -- LIMIT (R)
             | LTokLong          -- LONG (R)
             | LTokMatch         -- MATCH (R)
             | LTokMediumInt     -- MEDIUMINT (R)
-            | LTokMod           -- MOD (R)
-            | LTokNot           -- NOT (R)
+            -- | LTokMod           -- MOD (R)
+            -- | LTokNot           -- NOT (R)
             | LTokNull          -- NULL (R)
             | LTokOn            -- ON (R)
-            | LTokOr            -- OR (R)
+            -- | LTokOr            -- OR (R)
             | LTokOrder         -- ORDER (R)
             | LTokOuter         -- OUTER (R)
             | LTokPrimary       -- PRIMARY (R)
@@ -86,27 +86,64 @@ data LToken = LTokAdd           -- ADD (R)
             | LTokWhere         -- WHERE (R)
             | LTokWith          -- WITH (R)
 
-              -- operators
-            | LTokUPlus         -- unary plus
-            | LTokUMinus        -- unary minus
-            | LTokUInv          -- unary bit inversion
-            | LTokUNot          -- unary not
-            | LTokXOr           -- xor
-            | LTokMul           -- muliply
-            | LTokSub           -- subtract
-            | LTokLShift        -- left shift
-            | LTokRShift        -- right shift
-            | LTokBitAnd        -- bitwise and
-            | LTokBitOr         -- bitwise or
-            | LTokEq            -- equal
-            | LTokSafeNotEq     -- null safe not equal
-            | LTokGTE           -- >=
-            | LTokGT            -- >
-            | LTokLTE           -- <=
-            | LTokLT            -- <
-            | LTokNotEq         -- <>, !=
+            -- Syntax
+            --
+            | LTokOpenPar       -- (
+            | LTokClosePar      -- )
+            | LTokComma         -- ,
 
-              -- terms with values
+            -- String Operators
+            --
+            | LTokBinary        -- BINARY
+            | LTokCase          -- CASE
+            | LTokIntDiv        -- DIV
+            | LTokIs            -- IS
+            | LTokIsNot         -- IS NOT
+            | LTokIsNotNull     -- IS NOT NULL
+            | LTokIsNull        -- IS NULL
+            | LTokLike          -- LIKE
+            | LTokNotLike       -- NOT LIKE
+            | LTokNotRegexp     -- NOT REGEXP
+            | LTokRegexp        -- REGEXP
+            | LTokSoundsLike    -- SOUNDS LIKE
+            | LTokXOr           -- XOR
+
+            -- Operators
+            --
+            | LTokBitAnd        -- &
+            | LTokBitInv        -- ~
+            | LTokBitOr         -- '|'
+            | LTokBitXOr        -- '^'
+            | LTokDiv           -- /
+            | LTokLShift        -- <<
+            | LTokMinus         -- -
+            | LTokMod           -- MOD, %
+            | LTokPlus          -- +
+            | LTokRShift        -- >>
+            | LTokMul           -- '*'
+
+            -- Comparison Operators
+            --
+            | LTokEq            -- =
+            | LTokSafeNotEq     -- <=>
+            | LTokGT            -- >
+            | LTokGTE           -- >=
+            | LTokLT            -- <
+            | LTokLTE           -- <=
+            | LTokNotEq         -- !=, <>
+
+            -- Logical Operators
+            --
+            | LTokAnd           -- AND, &&
+            | LTokNot           -- NOT, !
+            | LTokOr            -- OR, '||'
+
+            -- Assignment Operators
+            --
+            | LTokAssign        -- :=
+
+            -- Terms with values
+            --
             | LTokNum String    -- number constant
             | LTokStr String    -- string constant
             | LTokIdent String  -- identifier
@@ -117,17 +154,17 @@ instance Show LToken where
   show LTokAdd        = "ADD"
   show LTokAll        = "ALL"
   show LTokAlter      = "ALTER"
-  show LTokAnd        = "AND"
+  -- show LTokAnd        = "AND"
   show LTokAs         = "AS"
   show LTokAsc        = "ASC"
   show LTokBefore     = "BEFORE"
   show LTokBetween    = "BETWEEN"
   show LTokBigInt     = "BIGINT"
-  show LTokBinary     = "BINARY"
+  -- show LTokBinary     = "BINARY"
   show LTokBlob       = "BLOB"
   show LTokBoth       = "BOTH"
   show LTokBy         = "BY"
-  show LTokCase       = "CASE"
+  -- show LTokCase       = "CASE"
   show LTokChar       = "CHAR"
   show LTokCharacter  = "CHARACTER"
   show LTokCollate    = "COLLATE"
@@ -141,7 +178,7 @@ instance Show LToken where
   show LTokDelete     = "DELETE"
   show LTokDesc       = "DESC"
   show LTokDistinct   = "DISTINCT"
-  show LTokDiv        = "DIV"
+  -- show LTokDiv        = "DIV"
   show LTokDouble     = "DOUBLE"
   show LTokDrop       = "DROP"
   show LTokExists     = "EXISTS"
@@ -160,21 +197,21 @@ instance Show LToken where
   show LTokInt        = "INT"
   show LTokInteger    = "INTEGER"
   show LTokInterval   = "INTERVAL"
-  show LTokIs         = "IS"
+  -- show LTokIs         = "IS"
   show LTokJoin       = "JOIN"
   show LTokKey        = "KEY"
   show LTokKeys       = "KEYS"
   show LTokLeft       = "LEFT"
-  show LTokLike       = "LIKE"
+  -- show LTokLike       = "LIKE"
   show LTokLimit      = "LIMIT"
   show LTokLong       = "LONG"
   show LTokMatch      = "MATCH"
   show LTokMediumInt  = "MEDIUMINT"
-  show LTokMod        = "MOD"
-  show LTokNot        = "NOT"
+  -- show LTokMod        = "MOD"
+  -- show LTokNot        = "NOT"
   show LTokNull       = "NULL"
   show LTokOn         = "ON"
-  show LTokOr         = "OR"
+  -- show LTokOr         = "OR"
   show LTokOrder      = "ORDER"
   show LTokOuter      = "OUTER"
   show LTokPrimary    = "PRIMARY"
@@ -199,24 +236,60 @@ instance Show LToken where
   show LTokWhere      = "WHERE"
   show LTokWith       = "WITH"
 
-  show LTokUPlus      = "+"
-  show LTokUMinus     = "-"
-  show LTokUInv       = "~"
-  show LTokUNot       = "!"
-  show LTokXOr        = "^"
-  show LTokMul        = "*"
-  show LTokSub        = "-"
-  show LTokLShift     = "<<"
-  show LTokRShift     = ">>"
+  -- Syntax
+  show LTokOpenPar    = "("
+  show LTokClosePar   = ")"
+  show LTokComma      = ","
+
+  -- String Operators
+  --
+  show LTokBinary     = "BINARY"
+  show LTokCase       = "CASE"
+  show LTokIntDiv     = "DIV"
+  show LTokIs         = "IS"
+  show LTokIsNot      = "IS NOT"
+  show LTokIsNotNull  = "IS NOT NULL"
+  show LTokIsNull     = "IS NULL"
+  show LTokLike       = "LIKE"
+  show LTokNotLike    = "NOT LIKE"
+  show LTokNotRegexp  = "NOT REGEXP"
+  show LTokRegexp     = "REGEXP"
+  show LTokSoundsLike = "SOUNDS LIKE"
+  show LTokXOr        = "XOR"
+
+  -- Operators
+  --
   show LTokBitAnd     = "&"
+  show LTokBitInv     = "~"
   show LTokBitOr      = "|"
+  show LTokBitXOr     = "^"
+  show LTokDiv        = "/"
+  show LTokLShift     = "<<"
+  show LTokMinus      = "-"
+  show LTokMod        = "%"
+  show LTokPlus       = "+"
+  show LTokRShift     = ">>"
+  show LTokMul        = "*"
+
+  -- Comparison Operators
+  --
   show LTokEq         = "="
   show LTokSafeNotEq  = "<=>"
-  show LTokGTE        = ">="
   show LTokGT         = ">"
-  show LTokLTE        = "<="
+  show LTokGTE        = ">="
   show LTokLT         = "<"
-  show LTokNotEq      = "<>"
+  show LTokLTE        = "<="
+  show LTokNotEq      = "!= (or <>)"
+
+  -- Logical Operators
+  --
+  show LTokAnd        = "&&"
+  show LTokNot        = "!"
+  show LTokOr         = "||"
+
+  -- Assignment Operators
+  --
+  show LTokAssign     = ":="
 
   show (LTokNum n)    = "number: " ++ n
   show (LTokStr s)    = "string: " ++ s

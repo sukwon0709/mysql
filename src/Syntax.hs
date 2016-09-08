@@ -36,6 +36,7 @@ data BitExpr = BitOr BitExpr BitExpr
              | BitSub BitExpr BitExpr
              | BitMul BitExpr BitExpr
              | BitDiv BitExpr BitExpr
+             | BitIntDiv BitExpr BitExpr
              | BitMod BitExpr BitExpr
              | BitXOr BitExpr BitExpr
              | SimpleExpr SimpleExpr
@@ -48,6 +49,7 @@ data SimpleExpr = Lit Literal
                 | SEMinus SimpleExpr
                 | SETilde SimpleExpr
                 | SENot SimpleExpr
+                | SEList [SimpleExpr]
                 deriving (Eq, Show)
 
 data Literal = BLit Bool

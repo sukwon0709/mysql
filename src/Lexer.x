@@ -51,28 +51,49 @@ tokens :-
        <0> \"($dqstr|@charescd)*\"    	{ \s -> LTokStr s }
        <0> \'($sqstr|@charescs)*\'	{ \s -> LTokStr s }
 
-       <0> "!"				{ \s -> LTokNot }
-       <0> "-"				{ \s -> LTokUMinus }
-       <0> "~"				{ \s -> LTokUInv }
-       <0> "^"				{ \s -> LTokXOr }
-       <0> "*"				{ \s -> LTokMul }
-       <0> "/"				{ \s -> LTokDiv }
-       <0> "%"				{ \s -> LTokMod }
-       <0> "+"				{ \s -> LTokAdd }
-       <0> "<<"				{ \s -> LTokLShift }
-       <0> ">>"				{ \s -> LTokRShift }
-       <0> "&"				{ \s -> LTokBitAnd }
-       <0> "|"				{ \s -> LTokBitOr }
-       <0> "="				{ \s -> LTokEq }
-       <0> "<=>"			{ \s -> LTokSafeNotEq }
-       <0> ">="				{ \s -> LTokGTE }
-       <0> ">"				{ \s -> LTokGT }
-       <0> "<="				{ \s -> LTokLTE }
-       <0> "<"				{ \s -> LTokLT }
-       <0> "<>"				{ \s -> LTokNotEq }
-       <0> "!="				{ \s -> LTokNotEq }
-       <0> "&&"				{ \s -> LTokAnd }
-       <0> "||"				{ \s -> LTokOr }
+       -- Syntax
+       --
+       <0> "("				{ \s -> LTokOpenPar }		-- (
+       <0> ")"				{ \s -> LTokClosePar }		-- )
+       <0> ","				{ \s -> LTokComma }  		-- ,
+                    
+       -- Operators
+       --
+       <0> "&"				{ \s -> LTokBitAnd }		-- Bitwise AND
+       <0> "~"				{ \s -> LTokBitInv }		-- Bitwise inversion
+       <0> "|"				{ \s -> LTokBitOr }		-- Bitwise OR
+       <0> "^"				{ \s -> LTokBitXOr }		-- Bitwise XOR
+       <0> "/"				{ \s -> LTokDiv }  		-- division operator
+       <0> "<<"				{ \s -> LTokLShift } 		-- left shift
+       <0> "-"				{ \s -> LTokMinus }		-- minus / negative operator
+       <0> "%"				{ \s -> LTokMod } 		-- modulo operator
+       <0> "+"				{ \s -> LTokPlus }		-- addition operator
+       <0> ">>"				{ \s -> LTokRShift }		-- right shift
+       <0> "*"				{ \s -> LTokMul }		-- multipliciation operator
+
+       -- Comparison Operators
+       -- =, <=>, >, >=, <, <=, !=, <>
+       <0> "="				{ \s -> LTokEq }		-- equal operator (could be assignment)
+       <0> "<=>"			{ \s -> LTokSafeNotEq }		-- NULL-safe equal operator
+       <0> ">"				{ \s -> LTokGT }      		-- greater than operator
+       <0> ">="				{ \s -> LTokGTE }		-- greater than or equal operator
+       <0> "<"				{ \s -> LTokLT }		-- less than operator
+       <0> "<="				{ \s -> LTokLTE }		-- less than or equal operator
+       <0> "!="				{ \s -> LTokNotEq }		-- not equal operator
+       <0> "<>"				{ \s -> LTokNotEq }		-- not equal operator
+
+       -- Logical Operators (AND, &&, NOT, !, ||, OR, XOR)
+       --
+       <0> "&&"				{ \s -> LTokAnd }		-- logical and
+       <0> "!"				{ \s -> LTokNot }		-- negation operator
+       <0> "||"				{ \s -> LTokOr }		-- logical or
+       -- XOR and all string versions of logical operations
+       -- are handled at ident function.
+
+       -- Assignment Operators (=, :=)
+       -- = is handled as comparison operators
+       <0> ":="				{ \s -> LTokAssign }		-- assignment operator
+       
 
 {
 
@@ -105,7 +126,7 @@ ident s = case (fmap toLower s) of
        "delete" -> LTokDelete
        "desc" -> LTokDesc
        "distinct" -> LTokDistinct
-       "div" -> LTokDiv
+       "div" -> LTokIntDiv
        "double" -> LTokDouble
        "drop" -> LTokDrop
        "exists" -> LTokExists
@@ -162,5 +183,6 @@ ident s = case (fmap toLower s) of
        "varying" -> LTokVarying
        "where" -> LTokWhere
        "with" -> LTokWith
+       "xor" -> LTokXOr
        ident' -> LTokIdent ident'
 }

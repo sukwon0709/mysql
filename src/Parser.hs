@@ -9,6 +9,7 @@ import qualified Text.Parsec.Expr as ParExp
 import qualified Lexer                  as Lex
 import qualified Token                  as Tok
 import qualified Syntax as Syn
+import Data.Functor.Identity
 
 
 type Parser = Parsec [Tok.LToken] ()
@@ -81,55 +82,71 @@ identExpr = do
   Tok.LTokIdent s <- anyIdent
   return $ Syn.Ident s
 
+-- | Simple Expression Operator Precedence
+-- BINARY, COLLATE,
+-- !
+-- - (unary minus), ~ (unary bit inversion)
+-- + (should I ignore this?)
+-- ||
+
+simpleExprTable :: [[ParExp.Operator [Tok.LToken] () Identity Syn.SimpleExpr]]
+simpleExprTable = [ [ParExp.Prefix simpleExprNot],
+                    [ParExp.Prefix simpleExprMinus, ParExp.Prefix simpleExprInv],
+                    [ParExp.Prefix simpleExprPlus],
+                    [ParExp.Infix simpleExprOr ParExp.AssocLeft]
+                  ]
+
 simpleExprPlus :: Parser (Syn.SimpleExpr -> Syn.SimpleExpr)
-simpleExprPlus = do
-  tok' Tok.LTokUPlus
-  return Syn.SEPlus
+simpleExprPlus = tok' Tok.LTokPlus *> pure Syn.SEPlus
 
 simpleExprMinus :: Parser (Syn.SimpleExpr -> Syn.SimpleExpr)
-simpleExprMinus = do
-  tok' Tok.LTokUMinus
-  return Syn.SEMinus
+simpleExprMinus = tok' Tok.LTokMinus *> pure Syn.SEMinus
 
-simpleExprTilde :: Parser (Syn.SimpleExpr -> Syn.SimpleExpr)
-simpleExprTilde = do
-  tok' Tok.LTokUInv
-  return Syn.SETilde
+simpleExprInv :: Parser (Syn.SimpleExpr -> Syn.SimpleExpr)
+simpleExprInv = tok' Tok.LTokBitInv *> pure Syn.SETilde
 
 simpleExprNot :: Parser (Syn.SimpleExpr -> Syn.SimpleExpr)
-simpleExprNot = do
-  tok' Tok.LTokUNot
-  return Syn.SENot
+simpleExprNot = tok' Tok.LTokNot *> pure Syn.SENot
 
-simpleExprUOp :: Parser (Syn.SimpleExpr -> Syn.SimpleExpr)
-simpleExprUOp = simpleExprPlus
-                <|> simpleExprMinus
-                <|> simpleExprTilde
-                <|> simpleExprNot
+-- simpleExprUOp :: Parser (Syn.SimpleExpr -> Syn.SimpleExpr)
+-- simpleExprUOp = simpleExprPlus
+--                 <|> simpleExprMinus
+--                 <|> simpleExprInv
+--                 <|> simpleExprNot
   
 simpleExprOr :: Parser (Syn.SimpleExpr -> Syn.SimpleExpr -> Syn.SimpleExpr)
 simpleExprOr = do
   tok' Tok.LTokOr
   return Syn.SEOr
 
-simpleExprBinOp :: Parser (Syn.SimpleExpr -> Syn.SimpleExpr -> Syn.SimpleExpr)
-simpleExprBinOp = simpleExprOr
+-- simpleExprBinOp :: Parser (Syn.SimpleExpr -> Syn.SimpleExpr -> Syn.SimpleExpr)
+-- simpleExprBinOp = simpleExprOr
+
+simpleExprList :: Parser Syn.SimpleExpr
+simpleExprList = do
+  tok' Tok.LTokOpenPar
+  exprs <- sepBy1 simpleExpr (tok' Tok.LTokComma)
+  tok' Tok.LTokClosePar
+  return $ Syn.SEList exprs
 
 simpleExprTerm :: Parser Syn.SimpleExpr
-simpleExprTerm = choice [ litExpr, identExpr ]
+simpleExprTerm = choice [ litExpr, identExpr, simpleExprList ]
+
+-- simpleExpr :: Parser Syn.SimpleExpr
+-- simpleExpr = simpleExprUOp <*> simpleExpr
+--              <|> simpleExprTerm `chainl1` simpleExprBinOp
 
 simpleExpr :: Parser Syn.SimpleExpr
-simpleExpr = simpleExprUOp <*> simpleExpr
-             <|> simpleExprTerm `chainl1` simpleExprBinOp
+simpleExpr = ParExp.buildExpressionParser simpleExprTable simpleExprTerm
 
 bitExprOr :: Parser (Syn.BitExpr -> Syn.BitExpr -> Syn.BitExpr)
 bitExprOr = do
-  tok' Tok.LTokOr
+  tok' Tok.LTokBitOr
   return Syn.BitOr
 
 bitExprAnd :: Parser (Syn.BitExpr -> Syn.BitExpr -> Syn.BitExpr)
 bitExprAnd = do
-  tok' Tok.LTokAnd
+  tok' Tok.LTokBitAnd
   return Syn.BitAnd
 
 bitExprLShift :: Parser (Syn.BitExpr -> Syn.BitExpr -> Syn.BitExpr)
@@ -144,12 +161,12 @@ bitExprRShift = do
 
 bitExprAdd :: Parser (Syn.BitExpr -> Syn.BitExpr -> Syn.BitExpr)
 bitExprAdd = do
-  tok' Tok.LTokAdd
+  tok' Tok.LTokPlus
   return Syn.BitAdd
 
 bitExprSub :: Parser (Syn.BitExpr -> Syn.BitExpr -> Syn.BitExpr)
 bitExprSub = do
-  tok' Tok.LTokSub
+  tok' Tok.LTokMinus
   return Syn.BitSub
 
 bitExprMul :: Parser (Syn.BitExpr -> Syn.BitExpr -> Syn.BitExpr)
@@ -162,6 +179,11 @@ bitExprDiv = do
   tok' Tok.LTokDiv
   return Syn.BitDiv
 
+bitExprIntDiv :: Parser (Syn.BitExpr -> Syn.BitExpr -> Syn.BitExpr)
+bitExprIntDiv = do
+  tok' Tok.LTokIntDiv
+  return Syn.BitIntDiv
+
 bitExprMod :: Parser (Syn.BitExpr -> Syn.BitExpr -> Syn.BitExpr)
 bitExprMod = do
   tok' Tok.LTokMod
@@ -169,7 +191,7 @@ bitExprMod = do
 
 bitExprXOr :: Parser (Syn.BitExpr -> Syn.BitExpr -> Syn.BitExpr)
 bitExprXOr = do
-  tok' Tok.LTokXOr
+  tok' Tok.LTokBitXOr
   return Syn.BitXOr
 
 bitExprBinOp :: Parser (Syn.BitExpr -> Syn.BitExpr -> Syn.BitExpr)
@@ -181,6 +203,7 @@ bitExprBinOp = bitExprOr
                <|> bitExprSub
                <|> bitExprMul
                <|> bitExprDiv
+               <|> bitExprIntDiv
                <|> bitExprMod
                <|> bitExprXOr
 
