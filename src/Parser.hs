@@ -10,6 +10,7 @@ import qualified Lexer                  as Lex
 import qualified Token                  as Tok
 import qualified Syntax as Syn
 import Data.Functor.Identity
+import Data.Char (toLower)
 
 
 type Parser = Parsec [Tok.LToken] ()
@@ -40,6 +41,11 @@ anyIdent = satisfy p <?> "identifier"
   where p t = case t of Tok.LTokIdent s -> True
                         _ -> False
 
+ident :: Monad m => String -> ParsecT [Tok.LToken] u m Tok.LToken
+ident s = satisfy p <?> "identifier"
+  where p t = case t of Tok.LTokIdent s' -> (fmap toLower s) ==  (fmap toLower s')
+                        _ -> False
+
 -- | Parses a LTokNum
 number :: Monad m => ParsecT [Tok.LToken] u m Tok.LToken
 number = satisfy p <?> "number"
@@ -53,7 +59,7 @@ stringlit = satisfy p <?> "string"
                         _ -> False
 
 -- Expressions
-
+--
 nullExpr :: Parser Syn.SimpleExpr
 nullExpr = do
   tok' Tok.LTokNull
@@ -329,3 +335,120 @@ exprTerm = try exprIsExpr
 
 parseExpr :: Parser Syn.Expr
 parseExpr = ParExp.buildExpressionParser exprTable exprTerm
+
+
+-- Statements
+--
+getDataTypeLength :: Parser Integer
+getDataTypeLength = do
+  tok' Tok.LTokOpenPar
+  (Tok.LTokNum n) <- number
+  tok' Tok.LTokClosePar
+  return $ read n
+  
+bitDataType :: Parser Syn.DataType
+bitDataType = do
+  t <- ident "bit"
+  len <- try getDataTypeLength <|> pure 0
+  return $ Syn.DTypeBit $ Just len
+
+tinyIntDataType :: Parser Syn.DataType
+tinyIntDataType = do
+  t <- tok' Tok.LTokTinyInt
+  len <- try getDataTypeLength <|> pure 0
+  return $ Syn.DTypeTinyInt $ Just len
+
+smallIntDataType :: Parser Syn.DataType
+smallIntDataType = do
+  t <- tok' Tok.LTokSmallInt
+  len <- try getDataTypeLength <|> pure 0
+  return $ Syn.DTypeSmallInt $ Just len
+
+mediumIntDataType :: Parser Syn.DataType
+mediumIntDataType = do
+  t <- tok' Tok.LTokMediumInt
+  len <- try getDataTypeLength <|> pure 0
+  return $ Syn.DTypeMediumInt $ Just len
+
+intDataType :: Parser Syn.DataType
+intDataType = do
+  t <- tok' Tok.LTokInt
+  len <- try getDataTypeLength <|> pure 0
+  return $ Syn.DTypeInt $ Just len
+
+integerDataType :: Parser Syn.DataType
+integerDataType = do
+  t <- tok' Tok.LTokInteger
+  len <- try getDataTypeLength <|> pure 0
+  return $ Syn.DTypeInteger $ Just len
+
+bigIntDataType :: Parser Syn.DataType
+bigIntDataType = do
+  t <- tok' Tok.LTokBigInt
+  len <- try getDataTypeLength <|> pure 0
+  return $ Syn.DTypeBigInt $ Just len
+
+charDataType :: Parser Syn.DataType
+charDataType = do
+  t <- tok' Tok.LTokChar
+  len <- try getDataTypeLength <|> pure 0
+  return $ Syn.DTypeChar $ Just len
+
+varCharDataType :: Parser Syn.DataType
+varCharDataType = do
+  t <- tok' Tok.LTokVarChar
+  len <- try getDataTypeLength <|> pure 0
+  return $ Syn.DTypeVarChar $ Just len
+
+dataType :: Parser Syn.DataType
+dataType = try bitDataType
+           <|> try tinyIntDataType
+           <|> try smallIntDataType
+           <|> try mediumIntDataType
+           <|> try intDataType
+           <|> try integerDataType
+           <|> try bigIntDataType
+           <|> try charDataType
+           <|> varCharDataType
+
+fieldDef :: Parser Syn.ColumnDefinition
+fieldDef = do
+  t <- dataType
+  nullable <- try (tok' Tok.LTokNot >> tok' Tok.LTokNull *> pure False)
+              <|> try (tok' Tok.LTokNull *> pure True)
+              <|> return True
+  autoIncrement <- try (ident "auto_increment" *> pure True) <|> return False
+  unique <- try (tok' Tok.LTokUnique >> tok' Tok.LTokKey *> pure True)
+            <|> try (tok' Tok.LTokUnique *> pure True)
+            <|> return False
+  primary <- try (tok' Tok.LTokPrimary >> tok' Tok.LTokKey *> pure True)
+             <|> try (tok' Tok.LTokKey *> pure True)
+             <|> return False
+  return $ Syn.FieldDef { Syn.fieldType = t
+                        , Syn.nullable = nullable
+                        , Syn.autoIncrement = autoIncrement
+                        , Syn.uniqueKey = unique
+                        , Syn.primaryKey = primary
+                        }
+
+columnDef :: Parser Syn.CreateDefinition
+columnDef = do
+  (Tok.LTokIdent name) <- anyIdent
+  def <- fieldDef
+  return Syn.ColumnDef { Syn.name = name
+                       , Syn.definition = def
+                       }
+
+createTableStmt :: Parser Syn.CreateTableStmt
+createTableStmt = do
+  tok' Tok.LTokCreate
+  temp <- try (ident "temporary" *> pure True) <|> pure False
+  tok' Tok.LTokTable
+  (Tok.LTokIdent name) <- anyIdent
+  tok' Tok.LTokOpenPar
+  defs <- sepBy1 columnDef (tok' Tok.LTokComma)
+  tok' Tok.LTokClosePar
+  return Syn.CreateTableStmt { Syn.isTemporary = temp
+                             , Syn.tblName = name
+                             , Syn.createDefinitions = defs
+                             }

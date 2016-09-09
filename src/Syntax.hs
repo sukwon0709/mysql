@@ -1,5 +1,9 @@
 module Syntax where
 
+
+-- Expression Syntax
+--
+
 data Expr = EOr Expr Expr
           | EXOr Expr Expr
           | EAnd Expr Expr
@@ -9,12 +13,6 @@ data Expr = EOr Expr Expr
           | BooleanPrimary BooleanPrimary
           deriving (Eq, Show)
 
--- data BooleanPrimary = BPNotEq BooleanPrimary Predicate
---                     | BPComp CompOp BooleanPrimary Predicate
---                     | Predicate Predicate
---                     deriving (Eq, Show)
-
--- Bumped up Predicate term into BooleanPrimary to use chainl1
 data BooleanPrimary = BPSafeNotEq BooleanPrimary Predicate
                     | BPEq BooleanPrimary Predicate
                     | BPGte BooleanPrimary Predicate
@@ -59,3 +57,39 @@ data Literal = BLit Bool
              | SLit String
              | NullLiteral
              deriving (Eq, Show)
+
+
+-- Statement Syntax
+--
+
+-- Create Table Statements
+--
+data CreateTableStmt = CreateTableStmt { isTemporary       :: Bool,
+                                         tblName           :: String,
+                                         createDefinitions :: [CreateDefinition]
+                                       }
+                       deriving (Eq, Show)
+
+data CreateDefinition = ColumnDef { name       :: String,
+                                    definition :: ColumnDefinition
+                                  }
+                      deriving (Eq, Show)
+
+data ColumnDefinition = FieldDef { fieldType     :: DataType,
+                                   nullable      :: Bool,
+                                   autoIncrement :: Bool,
+                                   uniqueKey     :: Bool,
+                                   primaryKey    :: Bool
+                                 }
+                        deriving (Eq, Show)
+
+data DataType = DTypeBit (Maybe Integer)                    -- BIT [(length)]
+              | DTypeTinyInt (Maybe Integer)                -- TINYINT [(length)]
+              | DTypeSmallInt (Maybe Integer)               -- SMALLINT [(length)]
+              | DTypeMediumInt (Maybe Integer)              -- MEDIUMINT [(lenght)]
+              | DTypeInt (Maybe Integer)                    -- INT [(length)]
+              | DTypeInteger (Maybe Integer)                -- INTEGER [(length)]
+              | DTypeBigInt (Maybe Integer)                 -- BIGINT [(length)]
+              | DTypeChar (Maybe Integer)                   -- CHAR [(length)]
+              | DTypeVarChar (Maybe Integer)                -- VARCHAR [(length)]
+              deriving (Eq, Show)
