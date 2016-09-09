@@ -256,6 +256,7 @@ ident s = case (fmap toLower s) of
        "case" -> LTokCase
        "char" -> LTokChar
        "character" -> LTokCharacter
+       "check" -> LTokCheck
        "collate" -> LTokCollate
        "column" -> LTokColumn
        "constraint" -> LTokConstraint
@@ -325,7 +326,7 @@ ident s = case (fmap toLower s) of
        "where" -> LTokWhere
        "with" -> LTokWith
        "xor" -> LTokXOr
-       ident' -> LTokIdent ident'
+       ident' -> LTokIdent s
 
 alex_action_1 =  \s -> LTokIdent s 
 alex_action_2 =  ident 

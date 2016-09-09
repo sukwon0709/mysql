@@ -15,10 +15,10 @@ data Expr = EOr Expr Expr
 
 data BooleanPrimary = BPSafeNotEq BooleanPrimary Predicate
                     | BPEq BooleanPrimary Predicate
-                    | BPGte BooleanPrimary Predicate
-                    | BPGt BooleanPrimary Predicate
-                    | BPLte BooleanPrimary Predicate
-                    | BPLt BooleanPrimary Predicate
+                    | BPGTE BooleanPrimary Predicate
+                    | BPGT BooleanPrimary Predicate
+                    | BPLTE BooleanPrimary Predicate
+                    | BPLT BooleanPrimary Predicate
                     | BPNotEq BooleanPrimary Predicate
                     | Predicate Predicate
                     deriving (Eq, Show)
@@ -70,10 +70,23 @@ data CreateTableStmt = CreateTableStmt { isTemporary       :: Bool,
                                        }
                        deriving (Eq, Show)
 
-data CreateDefinition = ColumnDef { name       :: String,
-                                    definition :: ColumnDefinition
+data CreateDefinition = ColumnDef { name         :: String,
+                                    definition   :: ColumnDefinition,
+                                    colDefRefDef :: Maybe RefDefinition
                                   }
+                      | PKDef { pkColNames :: [String] }
+                      | KeyDef { keyColNames :: [String] }
+                      | UKDef { ukColNames :: [String] }
+                      | FKDef { fkColNames :: [String],
+                                fkRefDef   :: RefDefinition
+                              }
+                      | CheckExpr { checkExpr :: Expr }
                       deriving (Eq, Show)
+
+data RefDefinition = RefDefinition { refDefTblName  :: String,
+                                     refDefColNames :: [String]
+                                   }
+                     deriving (Eq, Show)
 
 data ColumnDefinition = FieldDef { fieldType     :: DataType,
                                    nullable      :: Bool,

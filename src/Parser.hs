@@ -11,6 +11,8 @@ import qualified Token                  as Tok
 import qualified Syntax as Syn
 import Data.Functor.Identity
 import Data.Char (toLower)
+import Control.Applicative (liftA2)
+import Control.Monad (foldM)
 
 
 type Parser = Parsec [Tok.LToken] ()
@@ -224,68 +226,40 @@ predExpr = try predInExprList
 -- =, <=>, >=, >, <=, <, <>, !=, IS
 -- NOT
 
-boolTerm :: Parser Syn.BooleanPrimary
-boolTerm = Syn.Predicate <$> predExpr
-
-chainl1' :: Parser a -> Parser (b -> a -> b) -> (a -> b) -> Parser b
-chainl1' p op ctor = p >>= (rest . ctor)
-  where rest ctx =
-          do
-            f <- op
-            y <- p
-            rest $ f ctx y
-          <|> return ctx
-
-boolSafeNotEqOp :: Parser (Syn.BooleanPrimary -> Syn.Predicate -> Syn.BooleanPrimary)
-boolSafeNotEqOp = tok' Tok.LTokSafeNotEq *> pure Syn.BPSafeNotEq
-
-boolSafeNotEq :: Parser Syn.BooleanPrimary
-boolSafeNotEq = chainl1' predExpr boolSafeNotEqOp Syn.Predicate
-
-boolEqOp :: Parser (Syn.BooleanPrimary -> Syn.Predicate -> Syn.BooleanPrimary)
-boolEqOp = tok' Tok.LTokEq *> pure Syn.BPEq
-
-boolEq :: Parser Syn.BooleanPrimary
-boolEq = chainl1' predExpr boolEqOp Syn.Predicate
-
-boolGTEOp :: Parser (Syn.BooleanPrimary -> Syn.Predicate -> Syn.BooleanPrimary)
-boolGTEOp = tok' Tok.LTokGTE *> pure Syn.BPGte
-
-boolGTE :: Parser Syn.BooleanPrimary
-boolGTE = chainl1' predExpr boolGTEOp Syn.Predicate
-
-boolGTOp :: Parser (Syn.BooleanPrimary -> Syn.Predicate -> Syn.BooleanPrimary)
-boolGTOp = tok' Tok.LTokGT *> pure Syn.BPGt
-
-boolGT :: Parser Syn.BooleanPrimary
-boolGT = chainl1' predExpr boolGTOp Syn.Predicate
-
-boolLTEOp :: Parser (Syn.BooleanPrimary -> Syn.Predicate -> Syn.BooleanPrimary)
-boolLTEOp = tok' Tok.LTokLTE *> pure Syn.BPLte
-
-boolLTE :: Parser Syn.BooleanPrimary
-boolLTE = chainl1' predExpr boolLTEOp Syn.Predicate
-
-boolLTOp :: Parser (Syn.BooleanPrimary -> Syn.Predicate -> Syn.BooleanPrimary)
-boolLTOp = tok' Tok.LTokLT *> pure Syn.BPLt
-
-boolLT :: Parser Syn.BooleanPrimary
-boolLT = chainl1' predExpr boolLTOp Syn.Predicate
-
-boolNotEqOp :: Parser (Syn.BooleanPrimary -> Syn.Predicate -> Syn.BooleanPrimary)
-boolNotEqOp = tok' Tok.LTokNotEq *> pure Syn.BPNotEq
-
-boolNotEq :: Parser Syn.BooleanPrimary
-boolNotEq = chainl1' predExpr boolNotEqOp Syn.Predicate
+-- boolean_primary -> predicate boolean_primary'
+-- boolean_primary' -> IS [NOT] NULL boolean_primary'
+--                  -> <=> predicate boolean_primary'
+--                  -> comparison_operator predicate boolean_primary'
+--                  -> comparison_operator {ALL | ANY} (subquery)
+--                  -> nil
 
 boolPExpr :: Parser Syn.BooleanPrimary
-boolPExpr = try boolSafeNotEq
-            <|> try boolEq
-            <|> try boolGTE
-            <|> try boolGT
-            <|> try boolLTE
-            <|> try boolLT
-            <|> try boolNotEq
+boolPExpr = do
+  p <- predExpr
+  bp <- boolPExpr'
+  case bp of
+    Just xs -> foldM (\p' (f,x) -> return $ f p' x) (Syn.Predicate p) xs
+
+boolPExpr' = Just <$> try (boolComp Tok.LTokEq Syn.BPEq)
+             <|> Just <$> try (boolComp Tok.LTokSafeNotEq Syn.BPSafeNotEq)
+             <|> Just <$> try (boolComp Tok.LTokGTE Syn.BPGTE)
+             <|> Just <$> try (boolComp Tok.LTokGT Syn.BPGT)
+             <|> Just <$> try (boolComp Tok.LTokLTE Syn.BPLTE)
+             <|> Just <$> try (boolComp Tok.LTokLT Syn.BPLT)
+             <|> Just <$> try (boolComp Tok.LTokNotEq Syn.BPNotEq)
+             <|> return Nothing
+
+boolComp :: Tok.LToken
+         -> (Syn.BooleanPrimary -> Syn.Predicate -> Syn.BooleanPrimary)
+         -> Parser [(Syn.BooleanPrimary -> Syn.Predicate -> Syn.BooleanPrimary, Syn.Predicate)]
+boolComp t ctor = do
+  tok' t
+  p <- predExpr
+  bp <- boolPExpr'
+  case bp of
+    Just xs -> return $ (ctor, p) : xs
+    Nothing -> return $ [(ctor, p)]
+  
 
 -- | Expression Operator Precedence
 -- !
@@ -431,13 +405,92 @@ fieldDef = do
                         , Syn.primaryKey = primary
                         }
 
+refDef :: Parser Syn.RefDefinition
+refDef = do
+  tok' Tok.LTokReferences
+  (Tok.LTokIdent s) <- anyIdent
+  tok' Tok.LTokOpenPar
+  colNameIdents <- sepBy1 anyIdent (tok' Tok.LTokComma)
+  return Syn.RefDefinition { Syn.refDefTblName = s
+                           , Syn.refDefColNames = getNames colNameIdents
+                           }
+    where getName (Tok.LTokIdent n) = n
+          getNames = fmap getName
+
 columnDef :: Parser Syn.CreateDefinition
 columnDef = do
   (Tok.LTokIdent name) <- anyIdent
   def <- fieldDef
+  refDefs <- optionMaybe (try refDef)
   return Syn.ColumnDef { Syn.name = name
                        , Syn.definition = def
+                       , Syn.colDefRefDef = refDefs
                        }
+
+pkDef :: Parser Syn.CreateDefinition
+pkDef = do
+  tok' Tok.LTokPrimary
+  tok' Tok.LTokKey
+  tok' Tok.LTokOpenPar
+  colNameIdents <- sepBy1 anyIdent (tok' Tok.LTokComma)
+  tok' Tok.LTokClosePar
+  return Syn.PKDef { Syn.pkColNames = getNames colNameIdents }
+    where getName (Tok.LTokIdent n) = n
+          getNames = fmap getName
+
+keyDef :: Parser Syn.CreateDefinition
+keyDef = do
+  tok' Tok.LTokKey
+  idxName <- optionMaybe (try anyIdent)
+  tok' Tok.LTokOpenPar
+  colNameIdents <- sepBy1 anyIdent (tok' Tok.LTokComma)
+  tok' Tok.LTokClosePar
+  return Syn.KeyDef { Syn.keyColNames = getNames colNameIdents }
+    where getName (Tok.LTokIdent n) = n
+          getNames = fmap getName
+
+ukDef :: Parser Syn.CreateDefinition
+ukDef = do
+  tok' Tok.LTokUnique
+  tok' Tok.LTokKey
+  idxName <- optionMaybe (try anyIdent)  
+  tok' Tok.LTokOpenPar
+  colNameIdents <- sepBy1 anyIdent (tok' Tok.LTokComma)
+  tok' Tok.LTokClosePar
+  return Syn.UKDef { Syn.ukColNames = getNames colNameIdents }
+    where getName (Tok.LTokIdent n) = n
+          getNames = fmap getName
+
+fkDef :: Parser Syn.CreateDefinition
+fkDef = do
+  tok' Tok.LTokForeign
+  tok' Tok.LTokKey
+  idxName <- optionMaybe (try anyIdent)
+  tok' Tok.LTokOpenPar
+  colNameIdents <- sepBy1 anyIdent (tok' Tok.LTokComma)
+  tok' Tok.LTokClosePar
+  refDefs <- refDef
+  return Syn.FKDef { Syn.fkColNames = getNames colNameIdents
+                   , Syn.fkRefDef = refDefs
+                   }
+    where getName (Tok.LTokIdent n) = n
+          getNames = fmap getName
+
+checkExpr :: Parser Syn.CreateDefinition
+checkExpr = do
+  tok' Tok.LTokCheck
+  tok' Tok.LTokOpenPar
+  expr <- parseExpr
+  tok' Tok.LTokClosePar
+  return Syn.CheckExpr { Syn.checkExpr = expr }
+
+createDef :: Parser Syn.CreateDefinition
+createDef = try columnDef
+            <|> try pkDef
+            <|> try keyDef
+            <|> try ukDef
+            <|> try fkDef
+            <|> checkExpr
 
 createTableStmt :: Parser Syn.CreateTableStmt
 createTableStmt = do
@@ -446,7 +499,7 @@ createTableStmt = do
   tok' Tok.LTokTable
   (Tok.LTokIdent name) <- anyIdent
   tok' Tok.LTokOpenPar
-  defs <- sepBy1 columnDef (tok' Tok.LTokComma)
+  defs <- sepBy1 createDef (tok' Tok.LTokComma)
   tok' Tok.LTokClosePar
   return Syn.CreateTableStmt { Syn.isTemporary = temp
                              , Syn.tblName = name

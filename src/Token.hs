@@ -17,6 +17,7 @@ data LToken = LTokAdd           -- ADD (R)
             -- | LTokCase          -- CASE (R)
             | LTokChar          -- CHAR (R)
             | LTokCharacter     -- CHARACTER (R)
+            | LTokCheck         -- CHECK (R)
             | LTokCollate       -- COLLATE (R)
             | LTokColumn        -- COLUMN (R)
             | LTokConstraint    -- CONSTRAINT (R)
@@ -167,6 +168,7 @@ instance Show LToken where
   -- show LTokCase       = "CASE"
   show LTokChar       = "CHAR"
   show LTokCharacter  = "CHARACTER"
+  show LTokCheck      = "CHECK"
   show LTokCollate    = "COLLATE"
   show LTokColumn     = "COLUMN"
   show LTokConstraint = "CONSTRAINT"
