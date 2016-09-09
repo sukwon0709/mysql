@@ -11,7 +11,7 @@ import qualified Token            as Tok
 
 
 testCases :: [TestTree]
-testCases = [ts1, ts2, ts3]
+testCases = [ts1, ts2, ts3, ts4, ts5]
 
 -- ts1 :: TestTree
 -- ts1 = testCase "Create Table1" $ parseTest createTableStmt $
@@ -89,3 +89,60 @@ ts3 = testCase "Expression2" $
                 (Syn.Predicate (Syn.BitExpr (Syn.SimpleExpr (Syn.Ident "CourseID"))))
                 (Syn.BitExpr (Syn.SimpleExpr (Syn.Lit (Syn.NLit "10"))))))
           ]))))))
+
+ts4 :: TestTree
+ts4 = testCase "Expression3" $
+  (parse parseExpr ""
+    (Lex.alexScanTokens $ "NOT(1 <= CourseID and CourseID <= 10) or Points < 6"))
+  @?= Right
+  (Syn.EOr
+    (Syn.ENot
+      (Syn.BooleanPrimary
+        (Syn.Predicate
+          (Syn.BitExpr
+            (Syn.SimpleExpr
+              (Syn.SEList
+                [Syn.EAnd
+                  (Syn.BooleanPrimary
+                    (Syn.BPLTE
+                      (Syn.Predicate (Syn.BitExpr (Syn.SimpleExpr (Syn.Lit (Syn.NLit "1")))))
+                      (Syn.BitExpr (Syn.SimpleExpr (Syn.Ident "CourseID")))))
+                  (Syn.BooleanPrimary
+                    (Syn.BPLTE
+                      (Syn.Predicate (Syn.BitExpr (Syn.SimpleExpr (Syn.Ident "CourseID"))))
+                      (Syn.BitExpr (Syn.SimpleExpr (Syn.Lit (Syn.NLit "10"))))))
+                ]))))))
+    (Syn.BooleanPrimary
+      (Syn.BPLT
+        (Syn.Predicate
+          (Syn.BitExpr
+            (Syn.SimpleExpr
+              (Syn.Ident "Points"))))
+        (Syn.BitExpr
+          (Syn.SimpleExpr
+            (Syn.Lit
+              (Syn.NLit "6")))))))
+
+ts5 :: TestTree
+ts5 = testCase "Expression4" $
+  (parse parseExpr ""
+    (Lex.alexScanTokens $ "1 or Points < 6"))
+  @?= Right
+  (Syn.EOr
+    (Syn.BooleanPrimary
+      (Syn.Predicate
+        (Syn.BitExpr
+          (Syn.SimpleExpr
+            (Syn.Lit
+              (Syn.NLit "1"))))))
+    (Syn.BooleanPrimary
+      (Syn.BPLT
+        (Syn.Predicate
+          (Syn.BitExpr
+            (Syn.SimpleExpr
+              (Syn.Ident "Points"))))
+        (Syn.BitExpr
+          (Syn.SimpleExpr
+            (Syn.Lit
+              (Syn.NLit "6")))))))
+

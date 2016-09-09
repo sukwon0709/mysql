@@ -84,9 +84,9 @@ tokens :-
 
        -- Logical Operators (AND, &&, NOT, !, ||, OR, XOR)
        --
-       <0> "&&"				{ \s -> LTokAnd }		-- logical and
-       <0> "!"				{ \s -> LTokNot }		-- negation operator
-       <0> "||"				{ \s -> LTokOr }		-- logical or
+       <0> "&&"				{ \s -> LTokAndOp }		-- logical and
+       <0> "!"				{ \s -> LTokNotOp }		-- negation operator
+       <0> "||"				{ \s -> LTokOrOp }		-- logical or
        -- XOR and all string versions of logical operations
        -- are handled at ident function.
 

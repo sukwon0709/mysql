@@ -114,11 +114,11 @@ simpleExprInv :: Parser (Syn.SimpleExpr -> Syn.SimpleExpr)
 simpleExprInv = tok' Tok.LTokBitInv *> pure Syn.SETilde
 
 simpleExprNot :: Parser (Syn.SimpleExpr -> Syn.SimpleExpr)
-simpleExprNot = tok' Tok.LTokNot *> pure Syn.SENot
+simpleExprNot = tok' Tok.LTokNotOp *> pure Syn.SENot
   
 simpleExprOr :: Parser (Syn.SimpleExpr -> Syn.SimpleExpr -> Syn.SimpleExpr)
 simpleExprOr = do
-  tok' Tok.LTokOr
+  tok' Tok.LTokOrOp
   return Syn.SEOr
 
 simpleExprList :: Parser Syn.SimpleExpr
@@ -277,16 +277,16 @@ exprTable = [ [ParExp.Prefix exprNot],
             ]
 
 exprOr :: Parser (Syn.Expr -> Syn.Expr -> Syn.Expr)
-exprOr = tok' Tok.LTokOr *> pure Syn.EOr
+exprOr = (try (tok' Tok.LTokOr) <|> (tok' Tok.LTokOrOp)) *> pure Syn.EOr
 
 exprXOr :: Parser (Syn.Expr -> Syn.Expr -> Syn.Expr)
 exprXOr = tok' Tok.LTokXOr *> pure Syn.EXOr
 
 exprAnd :: Parser (Syn.Expr -> Syn.Expr -> Syn.Expr)
-exprAnd = tok' Tok.LTokAnd *> pure Syn.EAnd
+exprAnd = (try (tok' Tok.LTokAnd) <|> (tok' Tok.LTokAndOp)) *> pure Syn.EAnd
 
 exprNot :: Parser (Syn.Expr -> Syn.Expr)
-exprNot = tok' Tok.LTokNot *> pure Syn.ENot
+exprNot = (try (tok' Tok.LTokNot) <|> (tok' Tok.LTokNotOp)) *> pure Syn.ENot
 
 exprIsExpr :: Parser Syn.Expr
 exprIsExpr = do

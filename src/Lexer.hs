@@ -355,9 +355,9 @@ alex_action_24 =  \s -> LTokLT
 alex_action_25 =  \s -> LTokLTE 
 alex_action_26 =  \s -> LTokNotEq 
 alex_action_27 =  \s -> LTokNotEq 
-alex_action_28 =  \s -> LTokAnd 
-alex_action_29 =  \s -> LTokNot 
-alex_action_30 =  \s -> LTokOr 
+alex_action_28 =  \s -> LTokAndOp 
+alex_action_29 =  \s -> LTokNotOp 
+alex_action_30 =  \s -> LTokOrOp 
 alex_action_31 =  \s -> LTokAssign 
 {-# LINE 1 "templates/GenericTemplate.hs" #-}
 {-# LINE 1 "templates/GenericTemplate.hs" #-}

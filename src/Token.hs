@@ -4,7 +4,7 @@ module Token where
 data LToken = LTokAdd           -- ADD (R)
             | LTokAll           -- ALL (R)
             | LTokAlter         -- ALTER (R)
-            -- | LTokAnd           -- AND (R)
+            | LTokAnd           -- AND (R)
             | LTokAs            -- AS (R)
             | LTokAsc           -- ASC (R)
             | LTokBefore        -- BEFORE (R)
@@ -59,10 +59,10 @@ data LToken = LTokAdd           -- ADD (R)
             | LTokMatch         -- MATCH (R)
             | LTokMediumInt     -- MEDIUMINT (R)
             -- | LTokMod           -- MOD (R)
-            -- | LTokNot           -- NOT (R)
+            | LTokNot           -- NOT (R)
             | LTokNull          -- NULL (R)
             | LTokOn            -- ON (R)
-            -- | LTokOr            -- OR (R)
+            | LTokOr            -- OR (R)
             | LTokOrder         -- ORDER (R)
             | LTokOuter         -- OUTER (R)
             | LTokPrimary       -- PRIMARY (R)
@@ -135,9 +135,9 @@ data LToken = LTokAdd           -- ADD (R)
 
             -- Logical Operators
             --
-            | LTokAnd           -- AND, &&
-            | LTokNot           -- NOT, !
-            | LTokOr            -- OR, '||'
+            | LTokAndOp         -- &&
+            | LTokNotOp         -- !
+            | LTokOrOp          -- '||'
 
             -- Assignment Operators
             --
@@ -155,7 +155,7 @@ instance Show LToken where
   show LTokAdd        = "ADD"
   show LTokAll        = "ALL"
   show LTokAlter      = "ALTER"
-  -- show LTokAnd        = "AND"
+  show LTokAnd        = "AND"
   show LTokAs         = "AS"
   show LTokAsc        = "ASC"
   show LTokBefore     = "BEFORE"
@@ -210,10 +210,10 @@ instance Show LToken where
   show LTokMatch      = "MATCH"
   show LTokMediumInt  = "MEDIUMINT"
   -- show LTokMod        = "MOD"
-  -- show LTokNot        = "NOT"
+  show LTokNot        = "NOT"
   show LTokNull       = "NULL"
   show LTokOn         = "ON"
-  -- show LTokOr         = "OR"
+  show LTokOr         = "OR"
   show LTokOrder      = "ORDER"
   show LTokOuter      = "OUTER"
   show LTokPrimary    = "PRIMARY"
@@ -285,9 +285,9 @@ instance Show LToken where
 
   -- Logical Operators
   --
-  show LTokAnd        = "&&"
-  show LTokNot        = "!"
-  show LTokOr         = "||"
+  show LTokAndOp      = "&&"
+  show LTokNotOp      = "!"
+  show LTokOrOp       = "||"
 
   -- Assignment Operators
   --
