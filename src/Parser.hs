@@ -239,6 +239,7 @@ boolPExpr = do
   bp <- boolPExpr'
   case bp of
     Just xs -> foldM (\p' (f,x) -> return $ f p' x) (Syn.Predicate p) xs
+    Nothing -> return $ Syn.Predicate p
 
 boolPExpr' = Just <$> try (boolComp Tok.LTokEq Syn.BPEq)
              <|> Just <$> try (boolComp Tok.LTokSafeNotEq Syn.BPSafeNotEq)

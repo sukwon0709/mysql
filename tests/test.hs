@@ -4,17 +4,21 @@ import           Test.Tasty.QuickCheck as QC
 import           Test.Tasty.SmallCheck as SC
 
 import qualified LexerTest             as LexT
+import qualified ParserTest            as ParserT
 
 import           Data.List
 import           Data.Ord
 
-main = defaultMain lexerTests
+main = defaultMain tests
 
 tests :: TestTree
-tests = testGroup "Tests" [properties, unitTests, lexerUnitTests]
+tests = testGroup "Tests" [lexerUnitTests, parserUnitTests]
 
 lexerTests :: TestTree
 lexerTests = testGroup "Tests" [lexerUnitTests]
+
+parserTests :: TestTree
+parserTests = testGroup "Tests" [parserUnitTests]
 
 properties :: TestTree
 properties = testGroup "Properties" [scProps, qcProps]
@@ -51,3 +55,4 @@ unitTests = testGroup "Unit tests"
   ]
 
 lexerUnitTests = testGroup "Lexer unit tests" LexT.testCases
+parserUnitTests = testGroup "Parser unit tests" ParserT.testCases

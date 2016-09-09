@@ -26,11 +26,15 @@ test-suite test
   main-is:             test.hs
   other-modules:       Lexer
                      , LexerTest
+                     , ParserTest
                      , Token
+                     , Syntax
+                     , Parser
   default-language:    Haskell2010
   type:                exitcode-stdio-1.0
   build-depends:       array
                      , base >= 4.7 && < 5
+                     , parsec
                      , tasty
                      , tasty-hunit
                      , tasty-quickcheck
