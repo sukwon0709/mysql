@@ -309,9 +309,11 @@ ident s = case (fmap toLower s) of
        "real" -> LTokReal
        "references" -> LTokReferences
        "replace" -> LTokReplace
+       "right" -> LTokRight
        "schema" -> LTokSchema
        "select" -> LTokSelect
        "smallint" -> LTokSmallInt
+       "straight_join" -> LTokStraightJoin
        "table" -> LTokTable
        "tinyint" -> LTokTinyInt
        "true" -> LTokTrue

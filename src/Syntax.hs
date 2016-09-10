@@ -106,3 +106,43 @@ data DataType = DTypeBit (Maybe Integer)                    -- BIT [(length)]
               | DTypeChar (Maybe Integer)                   -- CHAR [(length)]
               | DTypeVarChar (Maybe Integer)                -- VARCHAR [(length)]
               deriving (Eq, Show)
+
+
+-- Select Statements
+--
+data TableReferences = TableReferences { tableReferences :: [TableReference] }
+                     deriving (Eq, Show)
+
+data TableReference = TableFactorRef { tableFactor :: TableFactor }
+                    | JoinTableRef { joinTable :: JoinTable }
+                    deriving (Eq, Show)
+
+data TableFactor = TableFactor { tableFactorName :: String }
+                 | TableFactors { tableFactors :: TableReferences }
+                 deriving (Eq, Show)
+
+data JoinTable = InnerJoin { innerTableRef    :: TableReference
+                           , innerTableFactor :: TableFactor
+                           , innerJoinConds   :: Maybe JoinCondition
+                           }
+               | StraightJoin { straightTableRef    :: TableReference
+                              , straightTableFactor :: TableFactor
+                              }
+               | OuterJoin { outerTableRef     :: TableReference
+                           , outerLeft         :: Bool
+                           , outerJoinTableRef :: TableReference
+                           , outerJoinCond     :: JoinCondition
+                           }
+               deriving (Eq, Show)
+
+data JoinCondition = JoinExpr { joinExpr :: Expr }
+                   -- | JoinUsing { joinColNames :: [String] }
+                   deriving (Eq, Show)
+
+data SelectStmt = Select { selectAll       :: Bool
+                         , selectDistinct  :: Bool
+                         , selectExprs     :: [Expr]
+                         , selectTabRefs   :: Maybe TableReferences
+                         , selectWhereCond :: Maybe Expr
+                         }
+                  deriving (Eq, Show)

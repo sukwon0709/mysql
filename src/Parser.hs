@@ -506,3 +506,126 @@ createTableStmt = do
                              , Syn.tblName = name
                              , Syn.createDefinitions = defs
                              }
+
+-- Select Stmts
+--
+selectExpr :: Parser [Syn.Expr]
+selectExpr = do
+  e <- parseExpr
+  es <- many (tok' Tok.LTokComma *> parseExpr)
+  return $ e:es
+
+fromExpr :: Parser Syn.TableReferences
+fromExpr = tok' Tok.LTokFrom *> tableReferences
+
+whereExpr :: Parser Syn.Expr
+whereExpr = tok' Tok.LTokWhere *> parseExpr
+
+joinExpr :: Parser Syn.JoinCondition
+joinExpr = do
+  tok' Tok.LTokOn
+  e <- parseExpr
+  return $ Syn.JoinExpr { Syn.joinExpr = e }
+
+tableReferences :: Parser Syn.TableReferences
+tableReferences = do
+  ref <- tableReference
+  refs <- many (tok' Tok.LTokComma *> tableReference)
+  return $ Syn.TableReferences { Syn.tableReferences = (ref:refs) }
+
+tableFactorRef :: Parser Syn.TableReference
+tableFactorRef = pure Syn.TableFactorRef <*> tableFactor
+
+joinTableRef :: Parser Syn.TableReference
+joinTableRef = pure Syn.JoinTableRef <*> joinTable
+
+tableReference :: Parser Syn.TableReference
+tableReference = try tableFactorRef
+                 <|> joinTableRef
+
+tableFactor' :: Parser Syn.TableFactor
+tableFactor' = do
+  (Tok.LTokIdent s) <- anyIdent
+  return $ Syn.TableFactor { Syn.tableFactorName = s }
+
+tableFactors :: Parser Syn.TableFactor
+tableFactors = do
+  tok' Tok.LTokOpenPar
+  refs <- tableReferences
+  tok' Tok.LTokClosePar
+  return $ Syn.TableFactors { Syn.tableFactors = refs }
+
+tableFactor :: Parser Syn.TableFactor
+tableFactor = try tableFactor'
+              <|> tableFactors
+
+innerJoin :: Parser Syn.JoinTable
+innerJoin = do
+  tableRef <- tableReference
+  try (tok' Tok.LTokInner)
+  try (tok' Tok.LTokCross)
+  tok' Tok.LTokJoin
+  tfactor <- tableFactor
+  joinCond <- optionMaybe joinCondition
+  return $ Syn.InnerJoin { Syn.innerTableRef = tableRef
+                         , Syn.innerTableFactor = tfactor
+                         , Syn.innerJoinConds = joinCond
+                         }
+
+straightJoin :: Parser Syn.JoinTable
+straightJoin = do
+  tableRef <- tableReference
+  tok' Tok.LTokStraightJoin
+  tfactor <- tableFactor
+  return $ Syn.StraightJoin { Syn.straightTableRef = tableRef
+                            , Syn.straightTableFactor = tfactor
+                            }
+
+outerJoin :: Parser Syn.JoinTable
+outerJoin = do
+  tableRef <- tableReference
+  isLeft <- try (tok' Tok.LTokLeft *> return True)
+  isLeft <- try (tok' Tok.LTokRight *> return False) <|> return True
+  try (tok' Tok.LTokOuter)
+  tok' Tok.LTokJoin
+  joinTableRef <- tableReference
+  joinCond <- joinCondition
+  return $ Syn.OuterJoin { Syn.outerTableRef = tableRef
+                         , Syn.outerLeft = isLeft
+                         , Syn.outerJoinTableRef = joinTableRef
+                         , Syn.outerJoinCond = joinCond
+                         }
+
+joinTable :: Parser Syn.JoinTable
+joinTable = try innerJoin
+            <|> try straightJoin
+            <|> outerJoin
+
+joinCondition :: Parser Syn.JoinCondition
+joinCondition = tok' Tok.LTokOn *> return Syn.JoinExpr <*> parseExpr
+
+parseSelect :: Parser Syn.SelectStmt
+parseSelect = do
+  tok' Tok.LTokSelect
+  isAll <- try (tok' Tok.LTokAll *> return True)
+           <|> return False
+  isDistinct <- try (tok' Tok.LTokDistinct *> return True)
+                <|> return False
+  sexprs <- selectExpr
+  tableRefs <- Just <$> try fromExpr <|> return Nothing
+  case tableRefs of
+    Just x -> do
+      whereCond <- Just <$> try whereExpr <|> return Nothing
+      return $ Syn.Select { Syn.selectAll = isAll
+                          , Syn.selectDistinct = isDistinct
+                          , Syn.selectExprs = sexprs
+                          , Syn.selectTabRefs = tableRefs
+                          , Syn.selectWhereCond = whereCond
+                          }
+    Nothing ->
+      return $ Syn.Select { Syn.selectAll = isAll
+                          , Syn.selectDistinct = isDistinct
+                          , Syn.selectExprs = sexprs
+                          , Syn.selectTabRefs = tableRefs
+                          , Syn.selectWhereCond = Nothing
+                          }
