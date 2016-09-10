@@ -11,7 +11,7 @@ import qualified Token            as Tok
 
 
 testCases :: [TestTree]
-testCases = [ts1, ts2, ts3, ts4, ts5, ts6, ts7, ts8, ts9, ts10, ts11]
+testCases = [ts1, ts2, ts3, ts4, ts5, ts6, ts7, ts8, ts9, ts10, ts11, ts12, ts13]
 
 -- ts1 :: TestTree
 -- ts1 = testCase "Create Table1" $ parseTest createTableStmt $
@@ -334,3 +334,86 @@ ts11 = testCase "Create Table2" $
           }
       ]
   }
+
+ts12 :: TestTree
+ts12 = testCase "Select1" $
+  (parse parseSelect ""
+    (Lex.alexScanTokens $ "SELECT StudentName, Points FROM Students"))
+  @?= Right (Syn.Select
+  {
+    Syn.selectAll = False
+  , Syn.selectDistinct = False
+  , Syn.selectExprs = [
+      (Syn.BooleanPrimary
+        (Syn.Predicate
+          (Syn.BitExpr
+            (Syn.SimpleExpr
+              (Syn.Ident "StudentName"))))),
+      (Syn.BooleanPrimary
+        (Syn.Predicate
+          (Syn.BitExpr
+            (Syn.SimpleExpr
+              (Syn.Ident "Points")))))
+      ]
+  , Syn.selectTabRefs =
+      Just (Syn.TableReferences
+            {
+              Syn.tableReferences = [
+                Syn.TableReference
+                {
+                  Syn.tableFactor = Syn.TableFactor
+                                    {
+                                      Syn.tableFactorName = "Students"
+                                    }
+                , Syn.joinTables = []
+                }
+                ]
+            })
+  , Syn.selectWhereCond = Nothing
+  })
+
+ts13 :: TestTree
+ts13 = testCase "Select2" $
+  (parse parseSelect ""
+    (Lex.alexScanTokens $ "SELECT StudentName, Points FROM Students JOIN Scores"))
+  @?= Right (Syn.Select
+  {
+    Syn.selectAll = False
+  , Syn.selectDistinct = False
+  , Syn.selectExprs = [
+      (Syn.BooleanPrimary
+        (Syn.Predicate
+          (Syn.BitExpr
+            (Syn.SimpleExpr
+              (Syn.Ident "StudentName"))))),
+      (Syn.BooleanPrimary
+        (Syn.Predicate
+          (Syn.BitExpr
+            (Syn.SimpleExpr
+              (Syn.Ident "Points")))))
+      ]
+  , Syn.selectTabRefs =
+      Just (Syn.TableReferences
+            {
+              Syn.tableReferences = [
+                Syn.TableReference
+                {
+                  Syn.tableFactor = Syn.TableFactor
+                                    {
+                                      Syn.tableFactorName = "Students"
+                                    }
+                , Syn.joinTables = [
+                    Syn.InnerJoin
+                    {
+                      Syn.innerTableFactor = Syn.TableFactor
+                                             {
+                                               Syn.tableFactorName = "Scores"
+                                             }
+                    , Syn.innerJoinConds = Nothing
+                    }
+                    ]
+                }
+                ]
+            })
+  , Syn.selectWhereCond = Nothing
+  })

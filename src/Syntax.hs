@@ -113,23 +113,21 @@ data DataType = DTypeBit (Maybe Integer)                    -- BIT [(length)]
 data TableReferences = TableReferences { tableReferences :: [TableReference] }
                      deriving (Eq, Show)
 
-data TableReference = TableFactorRef { tableFactor :: TableFactor }
-                    | JoinTableRef { joinTable :: JoinTable }
+data TableReference = TableReference { tableFactor :: TableFactor
+                                     , joinTables  :: [JoinTable]
+                                     }
                     deriving (Eq, Show)
 
 data TableFactor = TableFactor { tableFactorName :: String }
                  | TableFactors { tableFactors :: TableReferences }
                  deriving (Eq, Show)
 
-data JoinTable = InnerJoin { innerTableRef    :: TableReference
-                           , innerTableFactor :: TableFactor
+data JoinTable = InnerJoin { innerTableFactor :: TableFactor
                            , innerJoinConds   :: Maybe JoinCondition
                            }
-               | StraightJoin { straightTableRef    :: TableReference
-                              , straightTableFactor :: TableFactor
+               | StraightJoin { straightTableFactor :: TableFactor
                               }
-               | OuterJoin { outerTableRef     :: TableReference
-                           , outerLeft         :: Bool
+               | OuterJoin { outerLeft         :: Bool
                            , outerJoinTableRef :: TableReference
                            , outerJoinCond     :: JoinCondition
                            }

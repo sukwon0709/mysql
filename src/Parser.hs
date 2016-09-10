@@ -533,19 +533,23 @@ tableReferences = do
   refs <- many (tok' Tok.LTokComma *> tableReference)
   return $ Syn.TableReferences { Syn.tableReferences = (ref:refs) }
 
-tableFactorRef :: Parser Syn.TableReference
-tableFactorRef = pure Syn.TableFactorRef <*> tableFactor
-
-joinTableRef :: Parser Syn.TableReference
-joinTableRef = pure Syn.JoinTableRef <*> joinTable
-
 tableReference :: Parser Syn.TableReference
-tableReference = try tableFactorRef
-                 <|> joinTableRef
+tableReference = do
+  tfactor <- tableFactor
+  joins <- many joinTable
+  return $ Syn.TableReference { Syn.tableFactor = tfactor
+                              , Syn.joinTables = joins
+                              }
 
 tableFactor' :: Parser Syn.TableFactor
 tableFactor' = do
   (Tok.LTokIdent s) <- anyIdent
+  -- notFollowedBy $ try (tok' Tok.LTokInner)
+  --   <|> try (tok' Tok.LTokCross)
+  --   <|> try (tok' Tok.LTokJoin)
+  --   <|> try (tok' Tok.LTokStraightJoin)
+  --   <|> try (tok' Tok.LTokLeft)
+  --   <|> (tok' Tok.LTokRight)
   return $ Syn.TableFactor { Syn.tableFactorName = s }
 
 tableFactors :: Parser Syn.TableFactor
@@ -561,37 +565,31 @@ tableFactor = try tableFactor'
 
 innerJoin :: Parser Syn.JoinTable
 innerJoin = do
-  tableRef <- tableReference
-  try (tok' Tok.LTokInner)
-  try (tok' Tok.LTokCross)
+  optional $ try (tok' Tok.LTokInner)
+  optional $ try (tok' Tok.LTokCross)
   tok' Tok.LTokJoin
   tfactor <- tableFactor
   joinCond <- optionMaybe joinCondition
-  return $ Syn.InnerJoin { Syn.innerTableRef = tableRef
-                         , Syn.innerTableFactor = tfactor
+  return $ Syn.InnerJoin { Syn.innerTableFactor = tfactor
                          , Syn.innerJoinConds = joinCond
                          }
 
 straightJoin :: Parser Syn.JoinTable
 straightJoin = do
-  tableRef <- tableReference
   tok' Tok.LTokStraightJoin
   tfactor <- tableFactor
-  return $ Syn.StraightJoin { Syn.straightTableRef = tableRef
-                            , Syn.straightTableFactor = tfactor
+  return $ Syn.StraightJoin { Syn.straightTableFactor = tfactor
                             }
 
 outerJoin :: Parser Syn.JoinTable
 outerJoin = do
-  tableRef <- tableReference
-  isLeft <- try (tok' Tok.LTokLeft *> return True)
-  isLeft <- try (tok' Tok.LTokRight *> return False) <|> return True
-  try (tok' Tok.LTokOuter)
+  optional $ try (tok' Tok.LTokLeft)
+  isLeft <- option True (try (tok' Tok.LTokRight *> return False))
+  optional $ try (tok' Tok.LTokOuter)
   tok' Tok.LTokJoin
   joinTableRef <- tableReference
   joinCond <- joinCondition
-  return $ Syn.OuterJoin { Syn.outerTableRef = tableRef
-                         , Syn.outerLeft = isLeft
+  return $ Syn.OuterJoin { Syn.outerLeft = isLeft
                          , Syn.outerJoinTableRef = joinTableRef
                          , Syn.outerJoinCond = joinCond
                          }
