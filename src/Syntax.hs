@@ -66,13 +66,17 @@ data Literal = BLit Bool
 
 -- Statement Syntax
 --
+data Statement = CreateTableStmt CreateTableStmt
+               | SelectStmt SelectStmt
+               deriving (Eq, Show)
+
 
 -- Create Table Statements
 --
-data CreateTableStmt = CreateTableStmt { isTemporary       :: Bool,
-                                         tblName           :: Ident,
-                                         createDefinitions :: [CreateDefinition]
-                                       }
+data CreateTableStmt = CreateTable { isTemporary       :: Bool,
+                                     tblName           :: Ident,
+                                     createDefinitions :: [CreateDefinition]
+                                   }
                        deriving (Eq, Show)
 
 data CreateDefinition = ColumnDef { name         :: Ident,

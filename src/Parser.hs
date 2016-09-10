@@ -511,10 +511,10 @@ createTableStmt = do
   tok' Tok.LTokOpenPar
   defs <- sepBy1 createDef (tok' Tok.LTokComma)
   tok' Tok.LTokClosePar
-  return Syn.CreateTableStmt { Syn.isTemporary = temp
-                             , Syn.tblName = name
-                             , Syn.createDefinitions = defs
-                             }
+  return Syn.CreateTable { Syn.isTemporary = temp
+                         , Syn.tblName = name
+                         , Syn.createDefinitions = defs
+                         }
 
 -- Select Stmts
 --

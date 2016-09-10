@@ -45,12 +45,12 @@ tokens :-
        -- * May begin with a digit but unless quoted, may not consist sorely of digits.
        --
        <0> @idents "." @idents "." @idents
-					{ \s -> let [s1, s2, s3] = splitOn "." s
+                                        { \s -> let [s1, s2, s3] = splitOn "." s
                                                 in LTokIdent $ LIdentDoubleQualifiedToken s1 s2 s3
-					}
-       <0> @idents "." @idents		{ \s -> let [s1, s2] = splitOn "." s
+                                        }
+       <0> @idents "." @idents          { \s -> let [s1, s2] = splitOn "." s
                                                 in LTokIdent $ LIdentQualifiedToken s1 s2
-					}
+                                        }
 
        <0> \` $letter $identletter* \`	{ \s -> LTokIdent $ LIdentSimpleToken s }
        <0> $letter $identletter*	{ ident }

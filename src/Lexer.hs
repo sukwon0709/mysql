@@ -333,10 +333,10 @@ ident s = case (fmap toLower s) of
 
 alex_action_1 =  \s -> let [s1, s2, s3] = splitOn "." s
                                                 in LTokIdent $ LIdentDoubleQualifiedToken s1 s2 s3
-					
+                                        
 alex_action_2 =  \s -> let [s1, s2] = splitOn "." s
                                                 in LTokIdent $ LIdentQualifiedToken s1 s2
-					
+                                        
 alex_action_3 =  \s -> LTokIdent $ LIdentSimpleToken s 
 alex_action_4 =  ident 
 alex_action_5 =  \s -> LTokNum s 
