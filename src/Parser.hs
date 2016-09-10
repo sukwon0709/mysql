@@ -45,7 +45,14 @@ anyIdent = satisfy p <?> "identifier"
 
 ident :: Monad m => String -> ParsecT [Tok.LToken] u m Tok.LToken
 ident s = satisfy p <?> "identifier"
-  where p t = case t of Tok.LTokIdent s' -> (fmap toLower s) ==  (fmap toLower s')
+  where p t = case t of (Tok.LTokIdent (Tok.LIdentSimpleToken s')) ->
+                          (fmap toLower s) ==  (fmap toLower s')
+                        (Tok.LTokIdent (Tok.LIdentQualifiedToken s' s'')) ->
+                          (fmap toLower s) == (fmap toLower s' ++ "." ++ fmap toLower s'')
+                        (Tok.LTokIdent (Tok.LIdentDoubleQualifiedToken s' s'' s''')) ->
+                          (fmap toLower s) == (fmap toLower s' ++ "." ++
+                                               fmap toLower s'' ++ "." ++
+                                               fmap toLower s''')
                         _ -> False
 
 -- | Parses a LTokNum
@@ -59,6 +66,13 @@ stringlit :: Monad m => ParsecT [Tok.LToken] u m Tok.LToken
 stringlit = satisfy p <?> "string"
   where p t = case t of Tok.LTokStr s -> True
                         _ -> False
+
+identConvert :: Tok.LToken -> Syn.Ident
+identConvert (Tok.LTokIdent ident) =
+  case ident of
+    Tok.LIdentSimpleToken s -> Syn.SimpleIdent s
+    Tok.LIdentQualifiedToken s1 s2 -> Syn.QualifiedIdent s1 s2
+    Tok.LIdentDoubleQualifiedToken s1 s2 s3 -> Syn.DoubleQualifiedIdent s1 s2 s3
 
 -- Expressions
 --
@@ -87,7 +101,7 @@ litExpr = choice [ nullExpr, boolExpr, numberExpr, stringExpr ]
 
 identExpr :: Parser Syn.SimpleExpr
 identExpr = do
-  Tok.LTokIdent s <- anyIdent
+  s <- identConvert <$> anyIdent
   return $ Syn.Ident s
 
 -- | Simple Expression Operator Precedence
@@ -409,18 +423,17 @@ fieldDef = do
 refDef :: Parser Syn.RefDefinition
 refDef = do
   tok' Tok.LTokReferences
-  (Tok.LTokIdent s) <- anyIdent
+  s <- identConvert <$> anyIdent
   tok' Tok.LTokOpenPar
   colNameIdents <- sepBy1 anyIdent (tok' Tok.LTokComma)
   return Syn.RefDefinition { Syn.refDefTblName = s
                            , Syn.refDefColNames = getNames colNameIdents
                            }
-    where getName (Tok.LTokIdent n) = n
-          getNames = fmap getName
+    where getNames = fmap identConvert
 
 columnDef :: Parser Syn.CreateDefinition
 columnDef = do
-  (Tok.LTokIdent name) <- anyIdent
+  name <- identConvert <$> anyIdent
   def <- fieldDef
   refDefs <- optionMaybe (try refDef)
   return Syn.ColumnDef { Syn.name = name
@@ -436,8 +449,7 @@ pkDef = do
   colNameIdents <- sepBy1 anyIdent (tok' Tok.LTokComma)
   tok' Tok.LTokClosePar
   return Syn.PKDef { Syn.pkColNames = getNames colNameIdents }
-    where getName (Tok.LTokIdent n) = n
-          getNames = fmap getName
+    where getNames = fmap identConvert
 
 keyDef :: Parser Syn.CreateDefinition
 keyDef = do
@@ -447,8 +459,7 @@ keyDef = do
   colNameIdents <- sepBy1 anyIdent (tok' Tok.LTokComma)
   tok' Tok.LTokClosePar
   return Syn.KeyDef { Syn.keyColNames = getNames colNameIdents }
-    where getName (Tok.LTokIdent n) = n
-          getNames = fmap getName
+    where getNames = fmap identConvert
 
 ukDef :: Parser Syn.CreateDefinition
 ukDef = do
@@ -459,8 +470,7 @@ ukDef = do
   colNameIdents <- sepBy1 anyIdent (tok' Tok.LTokComma)
   tok' Tok.LTokClosePar
   return Syn.UKDef { Syn.ukColNames = getNames colNameIdents }
-    where getName (Tok.LTokIdent n) = n
-          getNames = fmap getName
+    where getNames = fmap identConvert
 
 fkDef :: Parser Syn.CreateDefinition
 fkDef = do
@@ -474,8 +484,7 @@ fkDef = do
   return Syn.FKDef { Syn.fkColNames = getNames colNameIdents
                    , Syn.fkRefDef = refDefs
                    }
-    where getName (Tok.LTokIdent n) = n
-          getNames = fmap getName
+    where getNames = fmap identConvert
 
 checkExpr :: Parser Syn.CreateDefinition
 checkExpr = do
@@ -498,7 +507,7 @@ createTableStmt = do
   tok' Tok.LTokCreate
   temp <- try (ident "temporary" *> pure True) <|> pure False
   tok' Tok.LTokTable
-  (Tok.LTokIdent name) <- anyIdent
+  name <- identConvert <$> anyIdent
   tok' Tok.LTokOpenPar
   defs <- sepBy1 createDef (tok' Tok.LTokComma)
   tok' Tok.LTokClosePar
@@ -543,14 +552,9 @@ tableReference = do
 
 tableFactor' :: Parser Syn.TableFactor
 tableFactor' = do
-  (Tok.LTokIdent s) <- anyIdent
-  -- notFollowedBy $ try (tok' Tok.LTokInner)
-  --   <|> try (tok' Tok.LTokCross)
-  --   <|> try (tok' Tok.LTokJoin)
-  --   <|> try (tok' Tok.LTokStraightJoin)
-  --   <|> try (tok' Tok.LTokLeft)
-  --   <|> (tok' Tok.LTokRight)
-  return $ Syn.TableFactor { Syn.tableFactorName = s }
+  name <- identConvert <$> anyIdent
+  return $ Syn.TableFactor { Syn.tableFactorName = name                           
+                           }
 
 tableFactors :: Parser Syn.TableFactor
 tableFactors = do

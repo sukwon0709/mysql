@@ -1,4 +1,7 @@
+{-# LANGUAGE OverloadedStrings #-}
 module Token where
+
+import           Data.List (intersperse)
 
 -- | MySQL tokens
 data LToken = LTokAdd           -- ADD (R)
@@ -147,11 +150,16 @@ data LToken = LTokAdd           -- ADD (R)
 
             -- Terms with values
             --
-            | LTokNum String    -- number constant
-            | LTokStr String    -- string constant
-            | LTokIdent String  -- identifier
-            | LTokEof           -- end of file
+            | LTokNum String        -- number constant
+            | LTokStr String        -- string constant
+            | LTokIdent LIdentToken -- identifier
+            | LTokEof               -- end of file
             deriving Eq
+
+data LIdentToken = LIdentSimpleToken String
+                 | LIdentQualifiedToken String String
+                 | LIdentDoubleQualifiedToken String String String
+                 deriving Eq
 
 instance Show LToken where
   show LTokAdd          = "ADD"
@@ -299,5 +307,10 @@ instance Show LToken where
 
   show (LTokNum n)      = "number: " ++ n
   show (LTokStr s)      = "string: " ++ s
-  show (LTokIdent i)    = "identifier: " ++ i
+  show (LTokIdent i)    = "identifier: " ++ show i
   show LTokEof          = "EOF"
+
+instance Show LIdentToken where
+  show (LIdentSimpleToken s)                 = s
+  show (LIdentQualifiedToken s1 s2)          = s1 ++ "." ++ s2
+  show (LIdentDoubleQualifiedToken s1 s2 s3) = concat $ intersperse "." [s1, s2, s3]

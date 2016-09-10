@@ -19,6 +19,7 @@ executable mysql
   build-depends:       array
                      , base >= 4.7 && < 5
                      , parsec
+                     , split >= 0.2.2
                      , tasty
 
 test-suite test
@@ -35,6 +36,7 @@ test-suite test
   build-depends:       array
                      , base >= 4.7 && < 5
                      , parsec
+                     , split >= 0.2.2
                      , tasty
                      , tasty-hunit
                      , tasty-quickcheck

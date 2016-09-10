@@ -3,6 +3,7 @@
 module Lexer where
 
 import Data.Char (toLower)
+import Data.List.Split (splitOn)
 import Token
 
 }
@@ -26,7 +27,7 @@ $longstr = \0-\255
 
 @digits = $digit+
 @hexdigits = $hexdigit+
-
+@idents = $letter $identletter*
 
 tokens :-
 
@@ -43,7 +44,15 @@ tokens :-
        -- Note
        -- * May begin with a digit but unless quoted, may not consist sorely of digits.
        --
-       <0> \` $letter $identletter* \`	{ \s -> LTokIdent s }
+       <0> @idents "." @idents "." @idents
+					{ \s -> let [s1, s2, s3] = splitOn "." s
+                                                in LTokIdent $ LIdentDoubleQualifiedToken s1 s2 s3
+					}
+       <0> @idents "." @idents		{ \s -> let [s1, s2] = splitOn "." s
+                                                in LTokIdent $ LIdentQualifiedToken s1 s2
+					}
+
+       <0> \` $letter $identletter* \`	{ \s -> LTokIdent $ LIdentSimpleToken s }
        <0> $letter $identletter*	{ ident }
 
        <0> @digits 		 	{ \s -> LTokNum s }
@@ -187,5 +196,5 @@ ident s = case (fmap toLower s) of
        "where" -> LTokWhere
        "with" -> LTokWith
        "xor" -> LTokXOr
-       ident' -> LTokIdent s
+       ident' -> LTokIdent $ LIdentSimpleToken s
 }

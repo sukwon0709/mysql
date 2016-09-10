@@ -11,7 +11,7 @@ import qualified Token            as Tok
 
 
 testCases :: [TestTree]
-testCases = [ts1, ts2, ts3, ts4, ts5, ts6, ts7, ts8, ts9, ts10, ts11, ts12, ts13]
+testCases = [ts1, ts2, ts3, ts4, ts5, ts6, ts7, ts8, ts9, ts10, ts11, ts12, ts13, ts14]
 
 -- ts1 :: TestTree
 -- ts1 = testCase "Create Table1" $ parseTest createTableStmt $
@@ -29,9 +29,9 @@ ts1 = testCase "Create Table1" $
   @?= Right Syn.CreateTableStmt
   {
     Syn.isTemporary = False
-  , Syn.tblName = "Students"
+  , Syn.tblName = Syn.SimpleIdent "Students"
   , Syn.createDefinitions = [
-      Syn.ColumnDef { Syn.name = "StudentNr"
+      Syn.ColumnDef { Syn.name = Syn.SimpleIdent "StudentNr"
                     , Syn.definition =
                         Syn.FieldDef { Syn.fieldType = Syn.DTypeTinyInt (Just 0)
                                      , Syn.nullable = False
@@ -41,7 +41,7 @@ ts1 = testCase "Create Table1" $
                                      }
                     , Syn.colDefRefDef = Nothing
                     },
-        Syn.ColumnDef { Syn.name = "StudentName"
+        Syn.ColumnDef { Syn.name = Syn.SimpleIdent "StudentName"
                       , Syn.definition =
                           Syn.FieldDef { Syn.fieldType = Syn.DTypeChar (Just 100)
                                        , Syn.nullable = False
@@ -62,10 +62,10 @@ ts2 = testCase "Expression1" $
   (Syn.BooleanPrimary
    (Syn.BPLTE
     (Syn.Predicate (Syn.BitExpr (Syn.SimpleExpr (Syn.Lit (Syn.NLit "1")))))
-    (Syn.BitExpr (Syn.SimpleExpr (Syn.Ident "CourseID")))))
+    (Syn.BitExpr (Syn.SimpleExpr (Syn.Ident (Syn.SimpleIdent "CourseID"))))))
   (Syn.BooleanPrimary
    (Syn.BPLTE
-    (Syn.Predicate (Syn.BitExpr (Syn.SimpleExpr (Syn.Ident "CourseID"))))
+    (Syn.Predicate (Syn.BitExpr (Syn.SimpleExpr (Syn.Ident (Syn.SimpleIdent "CourseID")))))
     (Syn.BitExpr (Syn.SimpleExpr (Syn.Lit (Syn.NLit "10")))))))
 
 ts3 :: TestTree
@@ -83,10 +83,10 @@ ts3 = testCase "Expression2" $
             (Syn.BooleanPrimary
               (Syn.BPLTE
                 (Syn.Predicate (Syn.BitExpr (Syn.SimpleExpr (Syn.Lit (Syn.NLit "1")))))
-                (Syn.BitExpr (Syn.SimpleExpr (Syn.Ident "CourseID")))))
+                (Syn.BitExpr (Syn.SimpleExpr (Syn.Ident (Syn.SimpleIdent "CourseID"))))))
             (Syn.BooleanPrimary
               (Syn.BPLTE
-                (Syn.Predicate (Syn.BitExpr (Syn.SimpleExpr (Syn.Ident "CourseID"))))
+                (Syn.Predicate (Syn.BitExpr (Syn.SimpleExpr (Syn.Ident (Syn.SimpleIdent "CourseID")))))
                 (Syn.BitExpr (Syn.SimpleExpr (Syn.Lit (Syn.NLit "10"))))))
           ]))))))
 
@@ -106,10 +106,10 @@ ts4 = testCase "Expression3" $
                   (Syn.BooleanPrimary
                     (Syn.BPLTE
                       (Syn.Predicate (Syn.BitExpr (Syn.SimpleExpr (Syn.Lit (Syn.NLit "1")))))
-                      (Syn.BitExpr (Syn.SimpleExpr (Syn.Ident "CourseID")))))
+                      (Syn.BitExpr (Syn.SimpleExpr (Syn.Ident (Syn.SimpleIdent "CourseID"))))))
                   (Syn.BooleanPrimary
                     (Syn.BPLTE
-                      (Syn.Predicate (Syn.BitExpr (Syn.SimpleExpr (Syn.Ident "CourseID"))))
+                      (Syn.Predicate (Syn.BitExpr (Syn.SimpleExpr (Syn.Ident (Syn.SimpleIdent "CourseID")))))
                       (Syn.BitExpr (Syn.SimpleExpr (Syn.Lit (Syn.NLit "10"))))))
                 ]))))))
     (Syn.BooleanPrimary
@@ -117,7 +117,7 @@ ts4 = testCase "Expression3" $
         (Syn.Predicate
           (Syn.BitExpr
             (Syn.SimpleExpr
-              (Syn.Ident "Points"))))
+              (Syn.Ident (Syn.SimpleIdent "Points")))))
         (Syn.BitExpr
           (Syn.SimpleExpr
             (Syn.Lit
@@ -140,7 +140,7 @@ ts5 = testCase "Expression4" $
         (Syn.Predicate
           (Syn.BitExpr
             (Syn.SimpleExpr
-              (Syn.Ident "Points"))))
+              (Syn.Ident (Syn.SimpleIdent "Points")))))
         (Syn.BitExpr
           (Syn.SimpleExpr
             (Syn.Lit
@@ -164,10 +164,10 @@ ts6 = testCase "Check Expression1" $
                           (Syn.BooleanPrimary
                             (Syn.BPLTE
                               (Syn.Predicate (Syn.BitExpr (Syn.SimpleExpr (Syn.Lit (Syn.NLit "1")))))
-                              (Syn.BitExpr (Syn.SimpleExpr (Syn.Ident "CourseID")))))
+                              (Syn.BitExpr (Syn.SimpleExpr (Syn.Ident (Syn.SimpleIdent "CourseID"))))))
                           (Syn.BooleanPrimary
                             (Syn.BPLTE
-                              (Syn.Predicate (Syn.BitExpr (Syn.SimpleExpr (Syn.Ident "CourseID"))))
+                              (Syn.Predicate (Syn.BitExpr (Syn.SimpleExpr (Syn.Ident (Syn.SimpleIdent "CourseID")))))
                               (Syn.BitExpr (Syn.SimpleExpr (Syn.Lit (Syn.NLit "10"))))))
                         ]))))))
             (Syn.BooleanPrimary
@@ -175,7 +175,7 @@ ts6 = testCase "Check Expression1" $
                 (Syn.Predicate
                   (Syn.BitExpr
                     (Syn.SimpleExpr
-                      (Syn.Ident "Points"))))
+                      (Syn.Ident (Syn.SimpleIdent "Points")))))
                 (Syn.BitExpr
                   (Syn.SimpleExpr
                     (Syn.Lit
@@ -188,7 +188,7 @@ ts7 = testCase "ColumnDef1" $
     (Lex.alexScanTokens $ "StudentID tinyint not null"))
   @?= Right Syn.ColumnDef
   {
-    Syn.name = "StudentID"
+    Syn.name = Syn.SimpleIdent "StudentID"
   , Syn.definition = Syn.FieldDef
                      {
                        Syn.fieldType = Syn.DTypeTinyInt (Just 0)
@@ -206,7 +206,7 @@ ts8 = testCase "ColumnDef2" $
     (Lex.alexScanTokens $ "CourseID tinyint not null"))
   @?= Right Syn.ColumnDef
   {
-    Syn.name = "CourseID"
+    Syn.name = Syn.SimpleIdent "CourseID"
   , Syn.definition = Syn.FieldDef
                      {
                        Syn.fieldType = Syn.DTypeTinyInt (Just 0)
@@ -224,7 +224,7 @@ ts9 = testCase "ColumnDef3" $
     (Lex.alexScanTokens $ "Points tinyint not null"))
   @?= Right Syn.ColumnDef
   {
-    Syn.name = "Points"
+    Syn.name = Syn.SimpleIdent "Points"
   , Syn.definition = Syn.FieldDef
                      {
                        Syn.fieldType = Syn.DTypeTinyInt (Just 0)
@@ -242,7 +242,7 @@ ts10 = testCase "PK1" $
     (Lex.alexScanTokens $ "PRIMARY KEY (StudentID, CourseID)"))
   @?= Right Syn.PKDef
   {
-    Syn.pkColNames = ["StudentID", "CourseID"]
+    Syn.pkColNames = [Syn.SimpleIdent "StudentID", Syn.SimpleIdent "CourseID"]
   }
 
 ts11 :: TestTree
@@ -257,11 +257,11 @@ ts11 = testCase "Create Table2" $
   @?= Right Syn.CreateTableStmt
   {
     Syn.isTemporary = False
-  , Syn.tblName = "Scores"
+  , Syn.tblName = Syn.SimpleIdent "Scores"
   , Syn.createDefinitions = [
       Syn.ColumnDef
       {
-        Syn.name = "StudentID"
+        Syn.name = Syn.SimpleIdent "StudentID"
       , Syn.definition = Syn.FieldDef
                          {
                            Syn.fieldType = Syn.DTypeTinyInt (Just 0)
@@ -274,7 +274,7 @@ ts11 = testCase "Create Table2" $
       },
       Syn.ColumnDef
       {
-        Syn.name = "CourseID"
+        Syn.name = Syn.SimpleIdent "CourseID"
       , Syn.definition = Syn.FieldDef
                          {
                            Syn.fieldType = Syn.DTypeTinyInt (Just 0)
@@ -287,7 +287,7 @@ ts11 = testCase "Create Table2" $
       },
       Syn.ColumnDef
       {
-        Syn.name = "Points"
+        Syn.name = Syn.SimpleIdent "Points"
       , Syn.definition = Syn.FieldDef
                          {
                            Syn.fieldType = Syn.DTypeTinyInt (Just 0)
@@ -300,7 +300,7 @@ ts11 = testCase "Create Table2" $
       },
       Syn.PKDef
       {
-        Syn.pkColNames = ["StudentID", "CourseID"]
+        Syn.pkColNames = [Syn.SimpleIdent "StudentID", Syn.SimpleIdent "CourseID"]
       },
       Syn.CheckExpr {
           Syn.checkExpr =
@@ -315,10 +315,10 @@ ts11 = testCase "Create Table2" $
                               (Syn.BooleanPrimary
                                 (Syn.BPLTE
                                   (Syn.Predicate (Syn.BitExpr (Syn.SimpleExpr (Syn.Lit (Syn.NLit "1")))))
-                                  (Syn.BitExpr (Syn.SimpleExpr (Syn.Ident "CourseID")))))
+                                  (Syn.BitExpr (Syn.SimpleExpr (Syn.Ident (Syn.SimpleIdent "CourseID"))))))
                               (Syn.BooleanPrimary
                                 (Syn.BPLTE
-                                  (Syn.Predicate (Syn.BitExpr (Syn.SimpleExpr (Syn.Ident "CourseID"))))
+                                  (Syn.Predicate (Syn.BitExpr (Syn.SimpleExpr (Syn.Ident (Syn.SimpleIdent "CourseID")))))
                                   (Syn.BitExpr (Syn.SimpleExpr (Syn.Lit (Syn.NLit "10"))))))
                             ]))))))
                 (Syn.BooleanPrimary
@@ -326,7 +326,7 @@ ts11 = testCase "Create Table2" $
                     (Syn.Predicate
                       (Syn.BitExpr
                         (Syn.SimpleExpr
-                          (Syn.Ident "Points"))))
+                          (Syn.Ident (Syn.SimpleIdent "Points")))))
                     (Syn.BitExpr
                       (Syn.SimpleExpr
                         (Syn.Lit
@@ -348,12 +348,12 @@ ts12 = testCase "Select1" $
         (Syn.Predicate
           (Syn.BitExpr
             (Syn.SimpleExpr
-              (Syn.Ident "StudentName"))))),
+              (Syn.Ident (Syn.SimpleIdent "StudentName")))))),
       (Syn.BooleanPrimary
         (Syn.Predicate
           (Syn.BitExpr
             (Syn.SimpleExpr
-              (Syn.Ident "Points")))))
+              (Syn.Ident (Syn.SimpleIdent "Points"))))))
       ]
   , Syn.selectTabRefs =
       Just (Syn.TableReferences
@@ -363,7 +363,7 @@ ts12 = testCase "Select1" $
                 {
                   Syn.tableFactor = Syn.TableFactor
                                     {
-                                      Syn.tableFactorName = "Students"
+                                      Syn.tableFactorName = Syn.SimpleIdent "Students"
                                     }
                 , Syn.joinTables = []
                 }
@@ -385,12 +385,12 @@ ts13 = testCase "Select2" $
         (Syn.Predicate
           (Syn.BitExpr
             (Syn.SimpleExpr
-              (Syn.Ident "StudentName"))))),
+              (Syn.Ident (Syn.SimpleIdent "StudentName")))))),
       (Syn.BooleanPrimary
         (Syn.Predicate
           (Syn.BitExpr
             (Syn.SimpleExpr
-              (Syn.Ident "Points")))))
+              (Syn.Ident (Syn.SimpleIdent "Points"))))))
       ]
   , Syn.selectTabRefs =
       Just (Syn.TableReferences
@@ -400,14 +400,14 @@ ts13 = testCase "Select2" $
                 {
                   Syn.tableFactor = Syn.TableFactor
                                     {
-                                      Syn.tableFactorName = "Students"
+                                      Syn.tableFactorName = Syn.SimpleIdent "Students"
                                     }
                 , Syn.joinTables = [
                     Syn.InnerJoin
                     {
                       Syn.innerTableFactor = Syn.TableFactor
                                              {
-                                               Syn.tableFactorName = "Scores"
+                                               Syn.tableFactorName = Syn.SimpleIdent "Scores"
                                              }
                     , Syn.innerJoinConds = Nothing
                     }
@@ -416,4 +416,84 @@ ts13 = testCase "Select2" $
                 ]
             })
   , Syn.selectWhereCond = Nothing
+  })
+
+ts14 :: TestTree
+ts14 = testCase "Select3" $
+  (parse parseSelect ""
+    (Lex.alexScanTokens $ "SELECT StudentName, Points \
+                          \ FROM Students JOIN Scores ON Scores.StudentID = Students.StudentNr \
+                          \ WHERE Scores.CourseID = 10 AND Scores.Points > 0"))
+  @?= Right (Syn.Select
+  {
+    Syn.selectAll = False
+  , Syn.selectDistinct = False
+  , Syn.selectExprs = [
+      (Syn.BooleanPrimary
+        (Syn.Predicate
+          (Syn.BitExpr
+            (Syn.SimpleExpr
+              (Syn.Ident (Syn.SimpleIdent "StudentName")))))),
+      (Syn.BooleanPrimary
+        (Syn.Predicate
+          (Syn.BitExpr
+            (Syn.SimpleExpr
+              (Syn.Ident (Syn.SimpleIdent "Points"))))))
+      ]
+  , Syn.selectTabRefs =
+      Just (Syn.TableReferences
+           {
+             Syn.tableReferences = [
+               Syn.TableReference
+               {
+                 Syn.tableFactor = Syn.TableFactor
+                                   {
+                                     Syn.tableFactorName = Syn.SimpleIdent "Students"
+                                   }
+               , Syn.joinTables = [
+                   Syn.InnerJoin
+                   {
+                     Syn.innerTableFactor = Syn.TableFactor
+                                            {
+                                              Syn.tableFactorName = Syn.SimpleIdent "Scores"
+                                            }
+                   , Syn.innerJoinConds = Just (Syn.JoinExpr
+                                                {
+                                                  Syn.joinExpr = Syn.BooleanPrimary
+                                                             (Syn.BPEq
+                                                               (Syn.Predicate
+                                                                 (Syn.BitExpr
+                                                                   (Syn.SimpleExpr
+                                                                     (Syn.Ident (Syn.QualifiedIdent "Scores" "StudentID")))))
+                                                               (Syn.BitExpr
+                                                                 (Syn.SimpleExpr
+                                                                   (Syn.Ident (Syn.QualifiedIdent "Students" "StudentNr")))))
+                                                })
+                   }
+                   ]
+               }
+               ]
+           })
+  , Syn.selectWhereCond = Just (Syn.EAnd
+                                 (Syn.BooleanPrimary
+                                   (Syn.BPEq
+                                     (Syn.Predicate
+                                       (Syn.BitExpr
+                                         (Syn.SimpleExpr
+                                           (Syn.Ident
+                                             (Syn.QualifiedIdent "Scores" "CourseID")))))
+                                     (Syn.BitExpr
+                                       (Syn.SimpleExpr
+                                         (Syn.Lit
+                                           (Syn.NLit "10"))))))
+                                 (Syn.BooleanPrimary
+                                   (Syn.BPGT
+                                     (Syn.Predicate
+                                       (Syn.BitExpr
+                                         (Syn.SimpleExpr
+                                           (Syn.Ident
+                                             (Syn.QualifiedIdent "Scores" "Points")))))
+                                     (Syn.BitExpr
+                                       (Syn.SimpleExpr
+                                         (Syn.Lit (Syn.NLit "0")))))))
   })

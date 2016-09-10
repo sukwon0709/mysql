@@ -43,7 +43,7 @@ data BitExpr = BitOr BitExpr BitExpr
              deriving (Eq, Show)
 
 data SimpleExpr = Lit Literal
-                | Ident String
+                | Ident Ident
                 | SEOr SimpleExpr SimpleExpr
                 | SEPlus SimpleExpr
                 | SEMinus SimpleExpr
@@ -51,6 +51,11 @@ data SimpleExpr = Lit Literal
                 | SENot SimpleExpr
                 | SEList [Expr]
                 deriving (Eq, Show)
+
+data Ident = SimpleIdent String
+           | QualifiedIdent String String
+           | DoubleQualifiedIdent String String String
+           deriving (Eq, Show)
 
 data Literal = BLit Bool
              | NLit String
@@ -65,26 +70,26 @@ data Literal = BLit Bool
 -- Create Table Statements
 --
 data CreateTableStmt = CreateTableStmt { isTemporary       :: Bool,
-                                         tblName           :: String,
+                                         tblName           :: Ident,
                                          createDefinitions :: [CreateDefinition]
                                        }
                        deriving (Eq, Show)
 
-data CreateDefinition = ColumnDef { name         :: String,
+data CreateDefinition = ColumnDef { name         :: Ident,
                                     definition   :: ColumnDefinition,
                                     colDefRefDef :: Maybe RefDefinition
                                   }
-                      | PKDef { pkColNames :: [String] }
-                      | KeyDef { keyColNames :: [String] }
-                      | UKDef { ukColNames :: [String] }
-                      | FKDef { fkColNames :: [String],
+                      | PKDef { pkColNames :: [Ident] }
+                      | KeyDef { keyColNames :: [Ident] }
+                      | UKDef { ukColNames :: [Ident] }
+                      | FKDef { fkColNames :: [Ident],
                                 fkRefDef   :: RefDefinition
                               }
                       | CheckExpr { checkExpr :: Expr }
                       deriving (Eq, Show)
 
-data RefDefinition = RefDefinition { refDefTblName  :: String,
-                                     refDefColNames :: [String]
+data RefDefinition = RefDefinition { refDefTblName  :: Ident,
+                                     refDefColNames :: [Ident]
                                    }
                      deriving (Eq, Show)
 
@@ -118,7 +123,7 @@ data TableReference = TableReference { tableFactor :: TableFactor
                                      }
                     deriving (Eq, Show)
 
-data TableFactor = TableFactor { tableFactorName :: String }
+data TableFactor = TableFactor { tableFactorName :: Ident }
                  | TableFactors { tableFactors :: TableReferences }
                  deriving (Eq, Show)
 
