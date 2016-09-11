@@ -1,4 +1,4 @@
-module Syntax where
+module MySQL.Syntax where
 
 
 -- Expression Syntax

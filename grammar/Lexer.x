@@ -1,10 +1,10 @@
 {
 
-module Lexer where
+module MySQL.Lexer where
 
 import Data.Char (toLower)
 import Data.List.Split (splitOn)
-import Token
+import MySQL.Token
 
 }
 

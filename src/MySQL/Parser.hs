@@ -1,16 +1,16 @@
 module MySQL.Parser
   ( parseMySQL
-  , module Token
-  , module Syntax
+  , module MySQL.Token
+  , module MySQL.Syntax
   ) where
 
-import           Lexer
-import qualified Parser                 as Par
-import           Syntax
+import           MySQL.Lexer
+import qualified MySQL.ParserInternal   as Par
+import           MySQL.Syntax
+import           MySQL.Token
 import           Text.Parsec.Combinator
 import           Text.Parsec.Error
 import           Text.Parsec.Prim
-import           Token
 
 
 parseMySQL :: String -> Either ParseError Statement

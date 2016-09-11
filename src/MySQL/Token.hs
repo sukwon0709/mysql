@@ -1,5 +1,5 @@
 {-# LANGUAGE OverloadedStrings #-}
-module Token where
+module MySQL.Token where
 
 import           Data.List (intersperse)
 

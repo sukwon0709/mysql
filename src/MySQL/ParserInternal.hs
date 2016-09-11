@@ -1,14 +1,14 @@
 {-# LANGUAGE FlexibleContexts #-}
-module Parser where
+module MySQL.ParserInternal where
 
 import           Text.Parsec.Combinator
 import           Text.Parsec.Prim
 import Text.Parsec.Pos (SourcePos)
 import qualified Text.Parsec.Expr as ParExp
 
-import qualified Lexer                  as Lex
-import qualified Token                  as Tok
-import qualified Syntax as Syn
+import qualified MySQL.Lexer                  as Lex
+import qualified MySQL.Token                  as Tok
+import qualified MySQL.Syntax as Syn
 import Data.Functor.Identity
 import Data.Char (toLower)
 import Control.Applicative (liftA2)

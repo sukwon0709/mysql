@@ -4,10 +4,10 @@ import           Test.Tasty
 import           Test.Tasty.HUnit
 import           Text.Parsec.Prim
 
-import qualified Lexer            as Lex
-import           Parser
-import qualified Syntax           as Syn
-import qualified Token            as Tok
+import qualified MySQL.Lexer          as Lex
+import           MySQL.ParserInternal
+import qualified MySQL.Syntax         as Syn
+import qualified MySQL.Token          as Tok
 
 
 testCases :: [TestTree]
@@ -26,7 +26,7 @@ ts1 = testCase "Create Table1" $
    (Lex.alexScanTokens $ "CREATE TABLE Students \
                          \ (StudentNr tinyint not null PRIMARY KEY, \
                          \ StudentName char(100) not null)"))
-  @?= Right Syn.CreateTableStmt
+  @?= Right Syn.CreateTable
   {
     Syn.isTemporary = False
   , Syn.tblName = Syn.SimpleIdent "Students"
@@ -254,7 +254,7 @@ ts11 = testCase "Create Table2" $
                           \ Points tinyint not null, \
                           \ PRIMARY KEY (StudentID, CourseID), \
                           \ CHECK(NOT(1 <= CourseID and CourseID <= 10) or Points < 6))"))
-  @?= Right Syn.CreateTableStmt
+  @?= Right Syn.CreateTable
   {
     Syn.isTemporary = False
   , Syn.tblName = Syn.SimpleIdent "Scores"

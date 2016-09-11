@@ -24,10 +24,10 @@ executable mysql
 library
   hs-source-dirs:      src
   exposed-modules:     MySQL.Parser
-  other-modules:       Lexer
-                     , Parser
-                     , Syntax
-                     , Token
+  other-modules:       MySQL.Lexer
+                     , MySQL.ParserInternal
+                     , MySQL.Syntax
+                     , MySQL.Token
   default-language:    Haskell2010
   build-depends:       base >= 4.7 && < 5
                      , array
@@ -37,12 +37,12 @@ library
 test-suite test
   hs-source-dirs:      tests, src
   main-is:             test.hs
-  other-modules:       Lexer
+  other-modules:       MySQL.Lexer
                      , LexerTest
                      , ParserTest
-                     , Token
-                     , Syntax
-                     , Parser
+                     , MySQL.Token
+                     , MySQL.Syntax
+                     , MySQL.ParserInternal
   default-language:    Haskell2010
   type:                exitcode-stdio-1.0
   build-depends:       array

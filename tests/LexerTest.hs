@@ -3,8 +3,8 @@ module LexerTest where
 import           Test.Tasty
 import           Test.Tasty.HUnit
 
-import qualified Lexer            as Lex
-import qualified Token            as Tok
+import qualified MySQL.Lexer      as Lex
+import qualified MySQL.Token      as Tok
 
 
 testCases :: [TestTree]

@@ -1,13 +1,13 @@
 {-# OPTIONS_GHC -fno-warn-unused-binds -fno-warn-missing-signatures #-}
 {-# LANGUAGE CPP #-}
-{-# LINE 1 "Lexer.x" #-}
+{-# LINE 1 "grammar/Lexer.x" #-}
 
 
-module Lexer where
+module MySQL.Lexer where
 
 import Data.Char (toLower)
 import Data.List.Split (splitOn)
-import Token
+import MySQL.Token
 
 
 #if __GLASGOW_HASKELL__ >= 603
@@ -236,7 +236,7 @@ alex_deflt :: Array Int Int
 alex_deflt = listArray (0,51) [-1,-1,-1,-1,-1,-1,-1,-1,3,-1,-1,3,16,-1,-1,16,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1]
 
 alex_accept = listArray (0::Int,51) [AlexAccNone,AlexAccNone,AlexAccNone,AlexAccNone,AlexAccNone,AlexAccNone,AlexAccNone,AlexAccNone,AlexAccNone,AlexAccNone,AlexAccNone,AlexAccNone,AlexAccNone,AlexAccNone,AlexAccNone,AlexAccNone,AlexAccNone,AlexAccNone,AlexAccSkip,AlexAcc (alex_action_1),AlexAcc (alex_action_2),AlexAcc (alex_action_3),AlexAcc (alex_action_4),AlexAcc (alex_action_5),AlexAcc (alex_action_6),AlexAcc (alex_action_7),AlexAcc (alex_action_8),AlexAcc (alex_action_9),AlexAcc (alex_action_10),AlexAcc (alex_action_11),AlexAcc (alex_action_12),AlexAcc (alex_action_13),AlexAcc (alex_action_14),AlexAcc (alex_action_15),AlexAcc (alex_action_16),AlexAcc (alex_action_17),AlexAcc (alex_action_18),AlexAcc (alex_action_19),AlexAcc (alex_action_20),AlexAcc (alex_action_21),AlexAcc (alex_action_22),AlexAcc (alex_action_23),AlexAcc (alex_action_24),AlexAcc (alex_action_25),AlexAcc (alex_action_26),AlexAcc (alex_action_27),AlexAcc (alex_action_28),AlexAcc (alex_action_29),AlexAcc (alex_action_30),AlexAcc (alex_action_31),AlexAcc (alex_action_32),AlexAcc (alex_action_33)]
-{-# LINE 107 "Lexer.x" #-}
+{-# LINE 107 "grammar/Lexer.x" #-}
 
 
 ident :: String -> LToken
