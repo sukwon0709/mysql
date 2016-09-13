@@ -21,6 +21,6 @@ ts2 = testCase "Identifier test2" $
 ts3 :: TestTree
 ts3 = testCase "Identifier test3" $
   Lex.alexScanTokens "select * from `table`" @?= [Tok.LTokSelect,
-                                                  Tok.LTokMul,
+                                                  Tok.LTokIdent (Tok.LIdentSimpleToken "*"),
                                                   Tok.LTokFrom,
-                                                  Tok.LTokIdent (Tok.LIdentSimpleToken "`table`")]
+                                                  Tok.LTokIdent (Tok.LIdentSimpleToken "table")]

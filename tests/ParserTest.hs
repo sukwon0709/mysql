@@ -11,7 +11,10 @@ import qualified MySQL.Token          as Tok
 
 
 testCases :: [TestTree]
-testCases = [ts1, ts2, ts3, ts4, ts5, ts6, ts7, ts8, ts9, ts10, ts11, ts12, ts13, ts14]
+testCases = [ts1, ts2, ts3, ts4, ts5,
+             ts6, ts7, ts8, ts9, ts10,
+             ts11, ts12, ts13, ts14, ts15,
+             ts16, ts17]
 
 -- ts1 :: TestTree
 -- ts1 = testCase "Create Table1" $ parseTest createTableStmt $
@@ -497,3 +500,101 @@ ts14 = testCase "Select3" $
                                        (Syn.SimpleExpr
                                          (Syn.Lit (Syn.NLit "0")))))))
   })
+
+ts15 :: TestTree
+ts15 = testCase "Select4" $
+  (parse parseSelect ""
+    (Lex.alexScanTokens $ "SELECT * FROM Students"))
+  @?= Right (Syn.Select
+  {
+    Syn.selectAll = False
+  , Syn.selectDistinct = False
+  , Syn.selectExprs = [
+      (Syn.BooleanPrimary
+        (Syn.Predicate
+          (Syn.BitExpr
+            (Syn.SimpleExpr
+              (Syn.Ident (Syn.SimpleIdent "*"))))))
+      ]
+  , Syn.selectTabRefs =
+      Just (Syn.TableReferences
+            {
+              Syn.tableReferences = [
+                Syn.TableReference
+                {
+                  Syn.tableFactor = Syn.TableFactor
+                                    {
+                                      Syn.tableFactorName = Syn.SimpleIdent "Students"
+                                    }
+                , Syn.joinTables = []
+                }
+                ]
+            })
+  , Syn.selectWhereCond = Nothing
+  })
+
+ts16 :: TestTree
+ts16 = testCase "Select5" $
+  (parse parseSelect ""
+    (Lex.alexScanTokens $ "SELECT Students.* FROM Students"))
+  @?= Right (Syn.Select
+  {
+    Syn.selectAll = False
+  , Syn.selectDistinct = False
+  , Syn.selectExprs = [
+      (Syn.BooleanPrimary
+        (Syn.Predicate
+          (Syn.BitExpr
+            (Syn.SimpleExpr
+              (Syn.Ident (Syn.QualifiedIdent "Students" "*"))))))
+      ]
+  , Syn.selectTabRefs =
+      Just (Syn.TableReferences
+            {
+              Syn.tableReferences = [
+                Syn.TableReference
+                {
+                  Syn.tableFactor = Syn.TableFactor
+                                    {
+                                      Syn.tableFactorName = Syn.SimpleIdent "Students"
+                                    }
+                , Syn.joinTables = []
+                }
+                ]
+            })
+  , Syn.selectWhereCond = Nothing
+  })
+
+ts17 :: TestTree
+ts17 = testCase "Create Table3" $
+  (parse createTableStmt ""
+   (Lex.alexScanTokens $ "CREATE TABLE School.Students \
+                         \ (StudentNr tinyint not null PRIMARY KEY, \
+                         \ StudentName char(100) not null)"))
+  @?= Right Syn.CreateTable
+  {
+    Syn.isTemporary = False
+  , Syn.tblName = Syn.QualifiedIdent "School" "Students"
+  , Syn.createDefinitions = [
+      Syn.ColumnDef { Syn.name = Syn.SimpleIdent "StudentNr"
+                    , Syn.definition =
+                        Syn.FieldDef { Syn.fieldType = Syn.DTypeTinyInt (Just 0)
+                                     , Syn.nullable = False
+                                     , Syn.autoIncrement = False
+                                     , Syn.uniqueKey = False
+                                     , Syn.primaryKey = True
+                                     }
+                    , Syn.colDefRefDef = Nothing
+                    },
+        Syn.ColumnDef { Syn.name = Syn.SimpleIdent "StudentName"
+                      , Syn.definition =
+                          Syn.FieldDef { Syn.fieldType = Syn.DTypeChar (Just 100)
+                                       , Syn.nullable = False
+                                       , Syn.autoIncrement = False
+                                       , Syn.uniqueKey = False
+                                       , Syn.primaryKey = False
+                                       }
+                      , Syn.colDefRefDef = Nothing
+                      }
+      ]
+  }
