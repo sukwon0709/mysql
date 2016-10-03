@@ -14,7 +14,8 @@ testCases :: [TestTree]
 testCases = [ts1, ts2, ts3, ts4, ts5,
              ts6, ts7, ts8, ts9, ts10,
              ts11, ts12, ts13, ts14, ts15,
-             ts16, ts17]
+             ts16, ts17, ts18, ts19, ts20,
+             ts21, ts22]
 
 -- ts1 :: TestTree
 -- ts1 = testCase "Create Table1" $ parseTest createTableStmt $
@@ -598,3 +599,172 @@ ts17 = testCase "Create Table3" $
                       }
       ]
   }
+
+ts18 :: TestTree
+ts18 = testCase "Symbolic Expression1" $
+  (parse parseExpr ""
+   (Lex.alexScanTokens $ "1 <= @symbolic1@ and @symbolic1@ <= 10"))
+  @?= Right (Syn.EAnd
+  (Syn.BooleanPrimary
+   (Syn.BPLTE
+    (Syn.Predicate (Syn.BitExpr (Syn.SimpleExpr (Syn.Lit (Syn.NLit "1")))))
+    (Syn.BitExpr (Syn.SimpleExpr (Syn.SymbolicE 1)))))
+  (Syn.BooleanPrimary
+   (Syn.BPLTE
+    (Syn.Predicate (Syn.BitExpr (Syn.SimpleExpr (Syn.SymbolicE 1))))
+    (Syn.BitExpr (Syn.SimpleExpr (Syn.Lit (Syn.NLit "10")))))))
+
+ts19 :: TestTree
+ts19 = testCase "Symbolic Expression2" $
+  (parse parseExpr ""
+   (Lex.alexScanTokens $ "NOT(1 <= @symbolic2@ and @symbolic2@ <= 10)"))
+  @?= Right
+  (Syn.ENot
+    (Syn.BooleanPrimary
+     (Syn.Predicate
+      (Syn.BitExpr
+       (Syn.SimpleExpr
+        (Syn.SEList
+          [Syn.EAnd
+            (Syn.BooleanPrimary
+              (Syn.BPLTE
+                (Syn.Predicate (Syn.BitExpr (Syn.SimpleExpr (Syn.Lit (Syn.NLit "1")))))
+                (Syn.BitExpr (Syn.SimpleExpr (Syn.SymbolicE 2)))))
+            (Syn.BooleanPrimary
+              (Syn.BPLTE
+                (Syn.Predicate (Syn.BitExpr (Syn.SimpleExpr (Syn.SymbolicE 2))))
+                (Syn.BitExpr (Syn.SimpleExpr (Syn.Lit (Syn.NLit "10"))))))
+          ]))))))
+
+ts20 :: TestTree
+ts20 = testCase "Symbolic Expression3" $
+  (parse parseExpr ""
+    (Lex.alexScanTokens $ "NOT(1 <= @symbolic1@ and @symbolic1@ <= 10) or @symbolic2@ < 6"))
+  @?= Right
+  (Syn.EOr
+    (Syn.ENot
+      (Syn.BooleanPrimary
+        (Syn.Predicate
+          (Syn.BitExpr
+            (Syn.SimpleExpr
+              (Syn.SEList
+                [Syn.EAnd
+                  (Syn.BooleanPrimary
+                    (Syn.BPLTE
+                      (Syn.Predicate (Syn.BitExpr (Syn.SimpleExpr (Syn.Lit (Syn.NLit "1")))))
+                      (Syn.BitExpr (Syn.SimpleExpr (Syn.SymbolicE 1)))))
+                  (Syn.BooleanPrimary
+                    (Syn.BPLTE
+                      (Syn.Predicate (Syn.BitExpr (Syn.SimpleExpr (Syn.SymbolicE 1))))
+                      (Syn.BitExpr (Syn.SimpleExpr (Syn.Lit (Syn.NLit "10"))))))
+                ]))))))
+    (Syn.BooleanPrimary
+      (Syn.BPLT
+        (Syn.Predicate
+          (Syn.BitExpr
+            (Syn.SimpleExpr
+              (Syn.SymbolicE 2))))
+        (Syn.BitExpr
+          (Syn.SimpleExpr
+            (Syn.Lit
+              (Syn.NLit "6")))))))
+
+ts21 :: TestTree
+ts21 = testCase "Symbolic Expression4" $
+  (parse parseExpr ""
+    (Lex.alexScanTokens $ "1 or @symbolic3@ < 6"))
+  @?= Right
+  (Syn.EOr
+    (Syn.BooleanPrimary
+      (Syn.Predicate
+        (Syn.BitExpr
+          (Syn.SimpleExpr
+            (Syn.Lit
+              (Syn.NLit "1"))))))
+    (Syn.BooleanPrimary
+      (Syn.BPLT
+        (Syn.Predicate
+          (Syn.BitExpr
+            (Syn.SimpleExpr
+              (Syn.SymbolicE 3))))
+        (Syn.BitExpr
+          (Syn.SimpleExpr
+            (Syn.Lit
+              (Syn.NLit "6")))))))
+
+ts22 :: TestTree
+ts22 = testCase "Symbolic Select1" $
+  (parse parseSelect ""
+    (Lex.alexScanTokens $ "SELECT StudentName, Points \
+                          \ FROM Students JOIN Scores ON Scores.StudentID = Students.StudentNr \
+                          \ WHERE Scores.CourseID = @symbolic1@ AND Scores.Points > @symbolic2@"))
+  @?= Right (Syn.Select
+  {
+    Syn.selectAll = False
+  , Syn.selectDistinct = False
+  , Syn.selectExprs = [
+      (Syn.BooleanPrimary
+        (Syn.Predicate
+          (Syn.BitExpr
+            (Syn.SimpleExpr
+              (Syn.Ident (Syn.SimpleIdent "StudentName")))))),
+      (Syn.BooleanPrimary
+        (Syn.Predicate
+          (Syn.BitExpr
+            (Syn.SimpleExpr
+              (Syn.Ident (Syn.SimpleIdent "Points"))))))
+      ]
+  , Syn.selectTabRefs =
+      Just (Syn.TableReferences
+           {
+             Syn.tableReferences = [
+               Syn.TableReference
+               {
+                 Syn.tableFactor = Syn.TableFactor
+                                   {
+                                     Syn.tableFactorName = Syn.SimpleIdent "Students"
+                                   }
+               , Syn.joinTables = [
+                   Syn.InnerJoin
+                   {
+                     Syn.innerTableFactor = Syn.TableFactor
+                                            {
+                                              Syn.tableFactorName = Syn.SimpleIdent "Scores"
+                                            }
+                   , Syn.innerJoinConds = Just (Syn.JoinExpr
+                                                {
+                                                  Syn.joinExpr = Syn.BooleanPrimary
+                                                             (Syn.BPEq
+                                                               (Syn.Predicate
+                                                                 (Syn.BitExpr
+                                                                   (Syn.SimpleExpr
+                                                                     (Syn.Ident (Syn.QualifiedIdent "Scores" "StudentID")))))
+                                                               (Syn.BitExpr
+                                                                 (Syn.SimpleExpr
+                                                                   (Syn.Ident (Syn.QualifiedIdent "Students" "StudentNr")))))
+                                                })
+                   }
+                   ]
+               }
+               ]
+           })
+  , Syn.selectWhereCond = Just (Syn.EAnd
+                                 (Syn.BooleanPrimary
+                                   (Syn.BPEq
+                                     (Syn.Predicate
+                                       (Syn.BitExpr
+                                         (Syn.SimpleExpr
+                                           (Syn.Ident
+                                             (Syn.QualifiedIdent "Scores" "CourseID")))))
+                                     (Syn.BitExpr
+                                       (Syn.SimpleExpr (Syn.SymbolicE 1)))))
+                                 (Syn.BooleanPrimary
+                                   (Syn.BPGT
+                                     (Syn.Predicate
+                                       (Syn.BitExpr
+                                         (Syn.SimpleExpr
+                                           (Syn.Ident
+                                             (Syn.QualifiedIdent "Scores" "Points")))))
+                                     (Syn.BitExpr
+                                       (Syn.SimpleExpr (Syn.SymbolicE 2))))))
+  })

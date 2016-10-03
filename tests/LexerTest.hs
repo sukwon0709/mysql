@@ -8,7 +8,7 @@ import qualified MySQL.Token      as Tok
 
 
 testCases :: [TestTree]
-testCases = [ts1, ts2, ts3]
+testCases = [ts1, ts2, ts3, ts4]
 
 ts1 :: TestTree
 ts1 = testCase "Identifier test1" $
@@ -24,3 +24,7 @@ ts3 = testCase "Identifier test3" $
                                                   Tok.LTokIdent (Tok.LIdentSimpleToken "*"),
                                                   Tok.LTokFrom,
                                                   Tok.LTokIdent (Tok.LIdentSimpleToken "table")]
+
+ts4 :: TestTree
+ts4 = testCase "Symbolic test1" $
+  Lex.alexScanTokens "@symbolic1@" @?= [Tok.LTokSymbolic 1]

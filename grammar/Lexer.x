@@ -34,6 +34,15 @@ tokens :-
 
        <0> $white+			;
 
+       -- Symbolic terms:
+       -- We allow symbolic expressions to be a part of SQL queries.
+       -- Symbolic terms are serialized into bytestrings and translated into placeholder values,
+       -- such as @symbolic1@, @symbolic2@, ...
+       --
+       <0> "@symbolic" @digits "@"	{ \s -> let n = read (init (drop 9 s)) :: Integer
+                                                in LTokSymbolic n
+					}
+
        -- Identifiers:
        -- An identifier maybe quoted ("`") or unquoted. If an identifier contains special characters
        -- or is a reserved word, you must quote it whenever you refer to it.

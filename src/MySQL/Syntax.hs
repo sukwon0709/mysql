@@ -50,6 +50,7 @@ data SimpleExpr = Lit Literal
                 | SETilde SimpleExpr
                 | SENot SimpleExpr
                 | SEList [Expr]
+                | SymbolicE Integer
                 deriving (Eq, Show)
 
 data Ident = SimpleIdent String

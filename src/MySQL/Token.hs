@@ -1,7 +1,8 @@
 {-# LANGUAGE OverloadedStrings #-}
 module MySQL.Token where
 
-import           Data.List (intersperse)
+import qualified Data.ByteString as BS
+import           Data.List       (intersperse)
 
 -- | MySQL tokens
 data LToken = LTokAdd           -- ADD (R)
@@ -154,6 +155,10 @@ data LToken = LTokAdd           -- ADD (R)
             | LTokStr String        -- string constant
             | LTokIdent LIdentToken -- identifier
             | LTokEof               -- end of file
+
+            -- Symbolic terms
+            --
+            | LTokSymbolic Integer -- BS.ByteString
             deriving Eq
 
 data LIdentToken = LIdentSimpleToken String
@@ -309,6 +314,8 @@ instance Show LToken where
   show (LTokStr s)      = "string: " ++ s
   show (LTokIdent i)    = "identifier: " ++ show i
   show LTokEof          = "EOF"
+
+  show (LTokSymbolic n) = "@symbolic" ++ show n ++ "@"
 
 instance Show LIdentToken where
   show (LIdentSimpleToken s)                 = s

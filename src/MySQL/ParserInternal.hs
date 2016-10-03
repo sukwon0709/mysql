@@ -67,6 +67,11 @@ stringlit = satisfy p <?> "string"
   where p t = case t of Tok.LTokStr s -> True
                         _ -> False
 
+symbolicE :: Monad m => ParsecT [Tok.LToken] u m Tok.LToken
+symbolicE = satisfy p <?> "symbolic"
+  where p t = case t of Tok.LTokSymbolic n -> True
+                        _ -> False
+
 identConvert :: Tok.LToken -> Syn.Ident
 identConvert (Tok.LTokIdent ident) =
   case ident of
@@ -142,8 +147,13 @@ simpleExprList = do
   tok' Tok.LTokClosePar
   return $ Syn.SEList exprs
 
+symbolicExpr :: Parser Syn.SimpleExpr
+symbolicExpr = do
+  (Tok.LTokSymbolic n) <- symbolicE
+  return $ Syn.SymbolicE n  
+
 simpleExprTerm :: Parser Syn.SimpleExpr
-simpleExprTerm = choice [ litExpr, identExpr, simpleExprList ]
+simpleExprTerm = choice [ litExpr, identExpr, simpleExprList, symbolicExpr ]
 
 simpleExpr :: Parser Syn.SimpleExpr
 simpleExpr = ParExp.buildExpressionParser simpleExprTable simpleExprTerm
