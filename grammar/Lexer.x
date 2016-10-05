@@ -39,7 +39,16 @@ tokens :-
        -- Symbolic terms are serialized into bytestrings and translated into placeholder values,
        -- such as @symbolic1@, @symbolic2@, ...
        --
-       <0> "@symbolic" @digits "@"	{ \s -> let n = read (init (drop 9 s)) :: Integer
+       
+       <0> \'"@symbolic" @digits "@"\'	{ \s -> let n = read . init . init . drop 10 $ s :: Integer
+        		     	 	        in LTokSymbolic n
+       					}
+		
+       <0> \""@symbolic" @digits "@"\"	{ \s -> let n = read . init . init . drop 10 $ s :: Integer
+       	   		 	 	     	in LTokSymbolic n
+        				}
+		
+       <0> "@symbolic" @digits "@"	{ \s -> let n = read . init . drop 9 $ s :: Integer
                                                 in LTokSymbolic n
 					}
 

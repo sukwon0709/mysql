@@ -15,7 +15,7 @@ testCases = [ts1, ts2, ts3, ts4, ts5,
              ts6, ts7, ts8, ts9, ts10,
              ts11, ts12, ts13, ts14, ts15,
              ts16, ts17, ts18, ts19, ts20,
-             ts21, ts22]
+             ts21, ts22, ts23]
 
 -- ts1 :: TestTree
 -- ts1 = testCase "Create Table1" $ parseTest createTableStmt $
@@ -768,3 +768,17 @@ ts22 = testCase "Symbolic Select1" $
                                      (Syn.BitExpr
                                        (Syn.SimpleExpr (Syn.SymbolicE 2))))))
   })
+
+ts23 :: TestTree
+ts23 = testCase "Symbolic Expression5" $
+  (parse parseExpr ""
+   (Lex.alexScanTokens $ "1 <= '@symbolic1@' and \"@symbolic1@\" <= 10"))
+  @?= Right (Syn.EAnd
+  (Syn.BooleanPrimary
+   (Syn.BPLTE
+    (Syn.Predicate (Syn.BitExpr (Syn.SimpleExpr (Syn.Lit (Syn.NLit "1")))))
+    (Syn.BitExpr (Syn.SimpleExpr (Syn.SymbolicE 1)))))
+  (Syn.BooleanPrimary
+   (Syn.BPLTE
+    (Syn.Predicate (Syn.BitExpr (Syn.SimpleExpr (Syn.SymbolicE 1))))
+    (Syn.BitExpr (Syn.SimpleExpr (Syn.Lit (Syn.NLit "10")))))))
