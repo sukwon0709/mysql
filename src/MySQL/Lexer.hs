@@ -492,14 +492,14 @@ ident s = case (fmap toLower s) of
        ident' -> LTokIdent $ LIdentSimpleToken s
 
 alex_action_1 =  \s -> let n = read . init . init . drop 10 $ s :: Integer
-        		     	 	        in LTokSymbolic n
-       					
+                                                in LTokSymbolic n
+                                        
 alex_action_2 =  \s -> let n = read . init . init . drop 10 $ s :: Integer
-       	   		 	 	     	in LTokSymbolic n
-        				
+                                                in LTokSymbolic n
+                                        
 alex_action_3 =  \s -> let n = read . init . drop 9 $ s :: Integer
                                                 in LTokSymbolic n
-					
+                                        
 alex_action_4 =  \s -> let [s1, s2, s3] = splitOn "." s
                                                 in LTokIdent $ LIdentDoubleQualifiedToken s1 s2 s3
                                         

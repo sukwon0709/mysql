@@ -32,7 +32,7 @@ $longstr = \0-\255
 
 tokens :-
 
-       <0> $white+			;
+       <0> $white+                      ;
 
        -- Symbolic terms:
        -- We allow symbolic expressions to be a part of SQL queries.
@@ -40,17 +40,17 @@ tokens :-
        -- such as @symbolic1@, @symbolic2@, ...
        --
        
-       <0> \'"@symbolic" @digits "@"\'	{ \s -> let n = read . init . init . drop 10 $ s :: Integer
-        		     	 	        in LTokSymbolic n
-       					}
-		
-       <0> \""@symbolic" @digits "@"\"	{ \s -> let n = read . init . init . drop 10 $ s :: Integer
-       	   		 	 	     	in LTokSymbolic n
-        				}
-		
-       <0> "@symbolic" @digits "@"	{ \s -> let n = read . init . drop 9 $ s :: Integer
+       <0> \'"@symbolic" @digits "@"\'  { \s -> let n = read . init . init . drop 10 $ s :: Integer
                                                 in LTokSymbolic n
-					}
+                                        }
+
+       <0> \""@symbolic" @digits "@"\"  { \s -> let n = read . init . init . drop 10 $ s :: Integer
+                                                in LTokSymbolic n
+                                        }
+
+       <0> "@symbolic" @digits "@"      { \s -> let n = read . init . drop 9 $ s :: Integer
+                                                in LTokSymbolic n
+                                        }
 
        -- Identifiers:
        -- An identifier maybe quoted ("`") or unquoted. If an identifier contains special characters
@@ -71,59 +71,59 @@ tokens :-
                                                 in LTokIdent $ LIdentQualifiedToken s1 s2
                                         }
 
-       --<0> \` $letter $identletter* \`	{ \s -> LTokIdent $ LIdentSimpleToken s }
-       --<0> $letter $identletter*	{ ident }
+       --<0> \` $letter $identletter* \`        { \s -> LTokIdent $ LIdentSimpleToken s }
+       --<0> $letter $identletter*      { ident }
        
-       <0> \`@idents_star\`		{ \s -> LTokIdent $ LIdentSimpleToken (filter (/= '`') s) }
-       <0> @idents_star			{ ident }
+       <0> \`@idents_star\`             { \s -> LTokIdent $ LIdentSimpleToken (filter (/= '`') s) }
+       <0> @idents_star                 { ident }
 
-       <0> @digits 		 	{ \s -> LTokNum s }
+       <0> @digits                      { \s -> LTokNum s }
 
-       <0> \"($dqstr|@charescd)*\"    	{ \s -> LTokStr (filter (/= '\"') s) }
-       <0> \'($sqstr|@charescs)*\'	{ \s -> LTokStr (filter (/= '\'') s) }
+       <0> \"($dqstr|@charescd)*\"      { \s -> LTokStr (filter (/= '\"') s) }
+       <0> \'($sqstr|@charescs)*\'      { \s -> LTokStr (filter (/= '\'') s) }
 
        -- Syntax
        --
-       <0> "("				{ \s -> LTokOpenPar }		-- (
-       <0> ")"				{ \s -> LTokClosePar }		-- )
-       <0> ","				{ \s -> LTokComma }  		-- ,
+       <0> "("                          { \s -> LTokOpenPar }           -- (
+       <0> ")"                          { \s -> LTokClosePar }          -- )
+       <0> ","                          { \s -> LTokComma }             -- ,
                     
        -- Operators
        --
-       <0> "&"				{ \s -> LTokBitAnd }		-- Bitwise AND
-       <0> "~"				{ \s -> LTokBitInv }		-- Bitwise inversion
-       <0> "|"				{ \s -> LTokBitOr }		-- Bitwise OR
-       <0> "^"				{ \s -> LTokBitXOr }		-- Bitwise XOR
-       <0> "/"				{ \s -> LTokDiv }  		-- division operator
-       <0> "<<"				{ \s -> LTokLShift } 		-- left shift
-       <0> "-"				{ \s -> LTokMinus }		-- minus / negative operator
-       <0> "%"				{ \s -> LTokMod } 		-- modulo operator
-       <0> "+"				{ \s -> LTokPlus }		-- addition operator
-       <0> ">>"				{ \s -> LTokRShift }		-- right shift
-       <0> "*"				{ \s -> LTokMul }		-- multipliciation operator
+       <0> "&"                          { \s -> LTokBitAnd }            -- Bitwise AND
+       <0> "~"                          { \s -> LTokBitInv }            -- Bitwise inversion
+       <0> "|"                          { \s -> LTokBitOr }             -- Bitwise OR
+       <0> "^"                          { \s -> LTokBitXOr }            -- Bitwise XOR
+       <0> "/"                          { \s -> LTokDiv }               -- division operator
+       <0> "<<"                         { \s -> LTokLShift }            -- left shift
+       <0> "-"                          { \s -> LTokMinus }             -- minus / negative operator
+       <0> "%"                          { \s -> LTokMod }               -- modulo operator
+       <0> "+"                          { \s -> LTokPlus }              -- addition operator
+       <0> ">>"                         { \s -> LTokRShift }            -- right shift
+       <0> "*"                          { \s -> LTokMul }               -- multipliciation operator
 
        -- Comparison Operators
        -- =, <=>, >, >=, <, <=, !=, <>
-       <0> "="				{ \s -> LTokEq }		-- equal operator (could be assignment)
-       <0> "<=>"			{ \s -> LTokSafeNotEq }		-- NULL-safe equal operator
-       <0> ">"				{ \s -> LTokGT }      		-- greater than operator
-       <0> ">="				{ \s -> LTokGTE }		-- greater than or equal operator
-       <0> "<"				{ \s -> LTokLT }		-- less than operator
-       <0> "<="				{ \s -> LTokLTE }		-- less than or equal operator
-       <0> "!="				{ \s -> LTokNotEq }		-- not equal operator
-       <0> "<>"				{ \s -> LTokNotEq }		-- not equal operator
+       <0> "="                          { \s -> LTokEq }                -- equal operator (could be assignment)
+       <0> "<=>"                        { \s -> LTokSafeNotEq }         -- NULL-safe equal operator
+       <0> ">"                          { \s -> LTokGT }                -- greater than operator
+       <0> ">="                         { \s -> LTokGTE }               -- greater than or equal operator
+       <0> "<"                          { \s -> LTokLT }                -- less than operator
+       <0> "<="                         { \s -> LTokLTE }               -- less than or equal operator
+       <0> "!="                         { \s -> LTokNotEq }             -- not equal operator
+       <0> "<>"                         { \s -> LTokNotEq }             -- not equal operator
 
        -- Logical Operators (AND, &&, NOT, !, ||, OR, XOR)
        --
-       <0> "&&"				{ \s -> LTokAndOp }		-- logical and
-       <0> "!"				{ \s -> LTokNotOp }		-- negation operator
-       <0> "||"				{ \s -> LTokOrOp }		-- logical or
+       <0> "&&"                         { \s -> LTokAndOp }             -- logical and
+       <0> "!"                          { \s -> LTokNotOp }             -- negation operator
+       <0> "||"                         { \s -> LTokOrOp }              -- logical or
        -- XOR and all string versions of logical operations
        -- are handled at ident function.
 
        -- Assignment Operators (=, :=)
        -- = is handled as comparison operators
-       <0> ":="				{ \s -> LTokAssign }		-- assignment operator
+       <0> ":="                         { \s -> LTokAssign }            -- assignment operator
        
 
 {
