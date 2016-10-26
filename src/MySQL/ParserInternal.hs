@@ -644,11 +644,32 @@ parseSelect = do
 
 -- Insert Stmts
 --
--- parseInsert :: Parser Syn.InsertStmt
--- parseInsert = do
---   tok' Tok.LTokInsert
---   try (tok' Tok.LTokInto) <|> pure ()
---   (Tok.LTokIdent tblName) <- anyIdent
+parseInsert :: Parser Syn.InsertStmt
+parseInsert = do
+  tok' Tok.LTokInsert
+  try (tok' Tok.LTokInto) <|> pure ()
+  tblName <- identConvert <$> anyIdent
+  colNames <- Just <$> try insertColNames <|> pure Nothing
+  tok' Tok.LTokValues
+  colValues <- insertColValues
+  return $ Syn.Insert { Syn.insertTblName = tblName
+                      , Syn.insertColNames = colNames
+                      , Syn.insertValues = colValues
+                      }
+
+insertColNames :: Parser [Syn.Ident]
+insertColNames = do
+  tok' Tok.LTokOpenPar
+  colNames <- sepBy1 (identConvert <$> anyIdent) (tok' Tok.LTokComma)
+  tok' Tok.LTokClosePar
+  return colNames
+
+insertColValues :: Parser [Syn.Expr]
+insertColValues = do
+  tok' Tok.LTokOpenPar
+  colValues <- sepBy1 parseExpr (tok' Tok.LTokComma)
+  tok' Tok.LTokClosePar
+  return colValues
 
 -- Delete Stmts
 --

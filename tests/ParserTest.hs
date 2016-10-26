@@ -16,7 +16,7 @@ testCases = [ts1, ts2, ts3, ts4, ts5,
              ts11, ts12, ts13, ts14, ts15,
              ts16, ts17, ts18, ts19, ts20,
              ts21, ts22, ts23, ts24, ts25,
-             ts26]
+             ts26, ts27, ts28]
 
 -- ts1 :: TestTree
 -- ts1 = testCase "Create Table1" $ parseTest createTableStmt $
@@ -832,3 +832,54 @@ ts26 = testCase "Symbolic Delete1" $
                                   (Syn.SimpleExpr
                                    (Syn.SymbolicE 1)))))
   })  
+
+ts27 :: TestTree
+ts27 = testCase "Insert1" $
+  (parse parseInsert ""
+   (Lex.alexScanTokens $ "INSERT INTO Students VALUES (1, 'abc')"))
+  @?= Right (Syn.Insert
+  {
+    Syn.insertTblName = Syn.SimpleIdent "Students"
+  , Syn.insertColNames = Nothing
+  , Syn.insertValues = [
+      (Syn.BooleanPrimary
+        (Syn.Predicate
+          (Syn.BitExpr
+            (Syn.SimpleExpr
+              (Syn.Lit
+                (Syn.NLit "1")))))),
+        (Syn.BooleanPrimary
+          (Syn.Predicate
+            (Syn.BitExpr
+              (Syn.SimpleExpr
+                (Syn.Lit
+                  (Syn.SLit "abc"))))))
+      ]
+  })
+
+ts28 :: TestTree
+ts28 = testCase "Insert2" $
+  (parse parseInsert ""
+   (Lex.alexScanTokens $ "INSERT INTO Students (StudentNr, StudentName) VALUES (1, 'abc')"))
+  @?= Right (Syn.Insert
+  {
+    Syn.insertTblName = Syn.SimpleIdent "Students"
+  , Syn.insertColNames = Just [
+      Syn.SimpleIdent "StudentNr",
+      Syn.SimpleIdent "StudentName"
+      ]
+  , Syn.insertValues = [
+      (Syn.BooleanPrimary
+        (Syn.Predicate
+          (Syn.BitExpr
+            (Syn.SimpleExpr
+              (Syn.Lit
+                (Syn.NLit "1")))))),
+        (Syn.BooleanPrimary
+          (Syn.Predicate
+            (Syn.BitExpr
+              (Syn.SimpleExpr
+                (Syn.Lit
+                  (Syn.SLit "abc"))))))
+      ]
+  })

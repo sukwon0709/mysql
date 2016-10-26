@@ -159,8 +159,8 @@ data SelectStmt = Select { selectAll       :: Bool
 
 -- Insert Statements
 --
-data InsertStmt = Insert { insertTblName  :: String
-                         , insertColNames :: Maybe [String]
+data InsertStmt = Insert { insertTblName  :: Ident
+                         , insertColNames :: Maybe [Ident]
                          , insertValues   :: [Expr]
                          }
                   deriving (Eq, Show)
