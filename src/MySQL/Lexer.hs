@@ -475,6 +475,7 @@ ident s = case (fmap toLower s) of
        "right" -> LTokRight
        "schema" -> LTokSchema
        "select" -> LTokSelect
+       "set" -> LTokSet
        "smallint" -> LTokSmallInt
        "straight_join" -> LTokStraightJoin
        "table" -> LTokTable

@@ -20,4 +20,5 @@ parseMySQL' :: Par.Parser Statement
 parseMySQL' = try (CreateTableStmt <$> Par.createTableStmt)
               <|> try (SelectStmt <$> Par.parseSelect)
               <|> try (InsertStmt <$> Par.parseInsert)
+              <|> try (UpdateStmt <$> Par.parseUpdate)
               <|> (DeleteStmt <$> Par.parseDelete)

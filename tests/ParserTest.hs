@@ -16,7 +16,7 @@ testCases = [ts1, ts2, ts3, ts4, ts5,
              ts11, ts12, ts13, ts14, ts15,
              ts16, ts17, ts18, ts19, ts20,
              ts21, ts22, ts23, ts24, ts25,
-             ts26, ts27, ts28]
+             ts26, ts27, ts28, ts29]
 
 -- ts1 :: TestTree
 -- ts1 = testCase "Create Table1" $ parseTest createTableStmt $
@@ -882,4 +882,30 @@ ts28 = testCase "Insert2" $
                 (Syn.Lit
                   (Syn.SLit "abc"))))))
       ]
+  })
+
+ts29 :: TestTree
+ts29 = testCase "Update1" $
+  (parse parseUpdate ""
+   (Lex.alexScanTokens $ "UPDATE Students SET StudentNr=17"))
+  @?= Right (Syn.Update
+  {
+    Syn.updateTblRef = Syn.TableReference
+                       {
+                         Syn.tableFactor = Syn.TableFactor
+                                           {
+                                             Syn.tableFactorName = Syn.SimpleIdent "Students"
+                                           }
+                       , Syn.joinTables = []
+                       }
+  , Syn.updateColNameValues = [
+      ( Syn.SimpleIdent "StudentNr"
+      , (Syn.BooleanPrimary
+         (Syn.Predicate
+          (Syn.BitExpr
+           (Syn.SimpleExpr
+            (Syn.Lit
+             (Syn.NLit "17")))))))
+      ]
+  , Syn.updateWhereCond = Nothing
   })

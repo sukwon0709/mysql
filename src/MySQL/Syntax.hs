@@ -70,6 +70,7 @@ data Literal = BLit Bool
 data Statement = CreateTableStmt CreateTableStmt
                | SelectStmt SelectStmt
                | InsertStmt InsertStmt
+               | UpdateStmt UpdateStmt
                | DeleteStmt DeleteStmt
                deriving (Eq, Show)
 
@@ -162,6 +163,16 @@ data SelectStmt = Select { selectAll       :: Bool
 data InsertStmt = Insert { insertTblName  :: Ident
                          , insertColNames :: Maybe [Ident]
                          , insertValues   :: [Expr]
+                         }
+                  deriving (Eq, Show)
+
+-- Update Statements
+--
+
+-- Single-Table Syntax
+data UpdateStmt = Update { updateTblRef        :: TableReference
+                         , updateColNameValues :: [(Ident, Expr)]
+                         , updateWhereCond     :: Maybe Expr
                          }
                   deriving (Eq, Show)
 

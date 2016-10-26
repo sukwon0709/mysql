@@ -78,6 +78,7 @@ data LToken = LTokAdd           -- ADD (R)
             | LTokRight         -- RIGHT (R)
             | LTokSchema        -- SCHEMA (R)
             | LTokSelect        -- SELECT (R)
+            | LTokSet           -- SET (R)
             | LTokSmallInt      -- SMALLINT (R)
             | LTokStraightJoin  -- STRAIGHT_JOIN (R)
             | LTokTable         -- TABLE (R)
@@ -241,6 +242,7 @@ instance Show LToken where
   show LTokRight        = "RIGHT"
   show LTokSchema       = "SCHEMA"
   show LTokSelect       = "SELECT"
+  show LTokSet          = "SET"
   show LTokSmallInt     = "SMALLINT"
   show LTokStraightJoin = "STRAIGHT_JOIN"
   show LTokTable        = "TABLE"

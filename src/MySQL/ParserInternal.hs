@@ -546,11 +546,55 @@ joinExpr = do
   e <- parseExpr
   return $ Syn.JoinExpr { Syn.joinExpr = e }
 
+-- tableReferences :: Parser Syn.TableReferences
+-- tableReferences = do
+--   ref <- tableReference
+--   refs <- many (tok' Tok.LTokComma *> tableReference)
+--   return $ Syn.TableReferences { Syn.tableReferences = (ref:refs) }
+
 tableReferences :: Parser Syn.TableReferences
 tableReferences = do
-  ref <- tableReference
-  refs <- many (tok' Tok.LTokComma *> tableReference)
-  return $ Syn.TableReferences { Syn.tableReferences = (ref:refs) }
+  refs <- sepBy1 tableReference (tok' Tok.LTokComma)
+  return $ Syn.TableReferences { Syn.tableReferences = refs }
+
+{-|
+
+Original Grammar:
+
+table_reference:
+    table_factor
+  | join_table
+
+table_factor:
+    tbl_name [PARTITION (partition_names)]
+        [[AS] alias] [index_hint_list]
+  | table_subquery [AS] alias
+  | ( table_references )
+
+join_table:
+    table_reference [INNER | CROSS] JOIN table_factor [join_condition]
+  | table_reference STRAIGHT_JOIN table_factor
+  | table_reference STRAIGHT_JOIN table_factor ON conditional_expr
+  | table_reference {LEFT|RIGHT} [OUTER] JOIN table_reference join_condition
+  | table_reference NATURAL [{LEFT|RIGHT} [OUTER]] JOIN table_factor
+
+After getting rid of Left-Recursion:
+
+table_reference:
+    table_factor table_reference'
+
+table_reference':
+    join_table table_reference'
+  | nil
+
+join_table:
+    [INNER | CROSS] JOIN table_factor [join_condition]
+  | STRAIGHT_JOIN table_factor
+  | STRAIGHT_JOIN table_factor ON conditional_expr
+  | {LEFT|RIGHT} [OUTER] JOIN table_reference join_condition
+  | NATURAL [{LEFT|RIGHT} [OUTER]] JOIN table_factor
+
+|-}
 
 tableReference :: Parser Syn.TableReference
 tableReference = do
@@ -560,22 +604,22 @@ tableReference = do
                               , Syn.joinTables = joins
                               }
 
-tableFactor' :: Parser Syn.TableFactor
-tableFactor' = do
+tableFactorTableName :: Parser Syn.TableFactor
+tableFactorTableName = do
   name <- identConvert <$> anyIdent
   return $ Syn.TableFactor { Syn.tableFactorName = name                           
                            }
 
-tableFactors :: Parser Syn.TableFactor
-tableFactors = do
+tableFactorTableReferences :: Parser Syn.TableFactor
+tableFactorTableReferences = do
   tok' Tok.LTokOpenPar
   refs <- tableReferences
   tok' Tok.LTokClosePar
   return $ Syn.TableFactors { Syn.tableFactors = refs }
 
 tableFactor :: Parser Syn.TableFactor
-tableFactor = try tableFactor'
-              <|> tableFactors
+tableFactor = try tableFactorTableName
+              <|> tableFactorTableReferences
 
 innerJoin :: Parser Syn.JoinTable
 innerJoin = do
@@ -670,6 +714,27 @@ insertColValues = do
   colValues <- sepBy1 parseExpr (tok' Tok.LTokComma)
   tok' Tok.LTokClosePar
   return colValues
+
+-- Update Stmts
+--
+parseUpdate :: Parser Syn.UpdateStmt
+parseUpdate = do
+  tok' Tok.LTokUpdate
+  tblRef <- tableReference
+  tok' Tok.LTokSet
+  colNameValues <- sepBy1 updateColNameValue (tok' Tok.LTokComma)
+  whereCond <- Just <$> try whereExpr <|> return Nothing
+  return $ Syn.Update { Syn.updateTblRef = tblRef
+                      , Syn.updateColNameValues = colNameValues
+                      , Syn.updateWhereCond = whereCond
+                      }
+
+updateColNameValue :: Parser (Syn.Ident, Syn.Expr)
+updateColNameValue = do
+  colName <- identConvert <$> anyIdent
+  tok' Tok.LTokEq
+  colValue <- parseExpr
+  return (colName, colValue)
 
 -- Delete Stmts
 --
