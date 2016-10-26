@@ -18,4 +18,5 @@ parseMySQL s = parse parseMySQL' "" (alexScanTokens s)
 
 parseMySQL' :: Par.Parser Statement
 parseMySQL' = try (CreateTableStmt <$> Par.createTableStmt)
-              <|> (SelectStmt <$> Par.parseSelect)
+              <|> try (SelectStmt <$> Par.parseSelect)
+              <|> (DeleteStmt <$> Par.parseDelete)

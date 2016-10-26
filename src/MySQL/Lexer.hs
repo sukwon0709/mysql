@@ -71,27 +71,28 @@ import Array
 
 
 
-{-# LINE 9 "<command-line>" #-}
-{-# LINE 1 "/home/dagit/Downloads/haskell-platform/build/ghc-bindist/local/lib/ghc-8.0.1/include/ghcversion.h" #-}
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 
 {-# LINE 9 "<command-line>" #-}
-{-# LINE 1 "/tmp/ghc24905_0/ghc_2.h" #-}
+{-# LINE 1 "/home/soh/.stack/programs/x86_64-linux/ghc-8.0.1/lib/ghc-8.0.1/include/ghcversion.h" #-}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+{-# LINE 9 "<command-line>" #-}
+{-# LINE 1 "/tmp/ghc21727_0/ghc_2.h" #-}
 
 
 
@@ -448,6 +449,7 @@ ident s = case (fmap toLower s) of
        "int" -> LTokInt
        "integer" -> LTokInteger
        "interval" -> LTokInterval
+       "into" -> LTokInto
        "is" -> LTokIs
        "join" -> LTokJoin
        "key" -> LTokKey
@@ -587,27 +589,28 @@ alex_action_36 =  \s -> LTokAssign
 
 
 
-{-# LINE 8 "<command-line>" #-}
-{-# LINE 1 "/home/dagit/Downloads/haskell-platform/build/ghc-bindist/local/lib/ghc-8.0.1/include/ghcversion.h" #-}
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 
 {-# LINE 8 "<command-line>" #-}
-{-# LINE 1 "/tmp/ghc24875_0/ghc_2.h" #-}
+{-# LINE 1 "/home/soh/.stack/programs/x86_64-linux/ghc-8.0.1/lib/ghc-8.0.1/include/ghcversion.h" #-}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+{-# LINE 8 "<command-line>" #-}
+{-# LINE 1 "/tmp/ghc21697_0/ghc_2.h" #-}
 
 
 

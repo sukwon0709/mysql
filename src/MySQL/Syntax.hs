@@ -69,6 +69,8 @@ data Literal = BLit Bool
 --
 data Statement = CreateTableStmt CreateTableStmt
                | SelectStmt SelectStmt
+               | InsertStmt InsertStmt
+               | DeleteStmt DeleteStmt
                deriving (Eq, Show)
 
 
@@ -152,5 +154,22 @@ data SelectStmt = Select { selectAll       :: Bool
                          , selectExprs     :: [Expr]
                          , selectTabRefs   :: Maybe TableReferences
                          , selectWhereCond :: Maybe Expr
+                         }
+                  deriving (Eq, Show)
+
+-- Insert Statements
+--
+data InsertStmt = Insert { insertTblName  :: String
+                         , insertColNames :: Maybe [String]
+                         , insertValues   :: [Expr]
+                         }
+                  deriving (Eq, Show)
+
+-- Delete Statements
+--
+
+-- Single-Table Syntax
+data DeleteStmt = Delete { deleteTblName   :: Ident
+                         , deleteWhereCond :: Maybe Expr
                          }
                   deriving (Eq, Show)

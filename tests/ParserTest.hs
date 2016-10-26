@@ -15,7 +15,8 @@ testCases = [ts1, ts2, ts3, ts4, ts5,
              ts6, ts7, ts8, ts9, ts10,
              ts11, ts12, ts13, ts14, ts15,
              ts16, ts17, ts18, ts19, ts20,
-             ts21, ts22, ts23]
+             ts21, ts22, ts23, ts24, ts25,
+             ts26]
 
 -- ts1 :: TestTree
 -- ts1 = testCase "Create Table1" $ parseTest createTableStmt $
@@ -782,3 +783,52 @@ ts23 = testCase "Symbolic Expression5" $
    (Syn.BPLTE
     (Syn.Predicate (Syn.BitExpr (Syn.SimpleExpr (Syn.SymbolicE 1))))
     (Syn.BitExpr (Syn.SimpleExpr (Syn.Lit (Syn.NLit "10")))))))
+
+ts24 :: TestTree
+ts24 = testCase "Delete1" $
+  (parse parseDelete ""
+   (Lex.alexScanTokens $ "DELETE FROM Students"))
+  @?= Right (Syn.Delete
+  {
+    Syn.deleteTblName = Syn.SimpleIdent "Students"
+  , Syn.deleteWhereCond = Nothing
+  })
+
+ts25 :: TestTree
+ts25 = testCase "Delete2" $
+  (parse parseDelete ""
+   (Lex.alexScanTokens $ "DELETE FROM Students WHERE Students.StudentNr > 7"))
+  @?= Right (Syn.Delete
+  {
+    Syn.deleteTblName = Syn.SimpleIdent "Students"
+  , Syn.deleteWhereCond = Just (Syn.BooleanPrimary
+                                (Syn.BPGT
+                                 (Syn.Predicate
+                                  (Syn.BitExpr
+                                   (Syn.SimpleExpr
+                                    (Syn.Ident
+                                     (Syn.QualifiedIdent "Students" "StudentNr")))))
+                                 (Syn.BitExpr
+                                  (Syn.SimpleExpr
+                                   (Syn.Lit
+                                    (Syn.NLit "7"))))))
+  })
+
+ts26 :: TestTree
+ts26 = testCase "Symbolic Delete1" $
+  (parse parseDelete ""
+   (Lex.alexScanTokens $ "DELETE FROM Students WHERE Students.StudentNr > @symbolic1@"))
+  @?= Right (Syn.Delete
+  {
+    Syn.deleteTblName = Syn.SimpleIdent "Students"
+  , Syn.deleteWhereCond = Just (Syn.BooleanPrimary
+                                (Syn.BPGT
+                                 (Syn.Predicate
+                                  (Syn.BitExpr
+                                   (Syn.SimpleExpr
+                                    (Syn.Ident
+                                     (Syn.QualifiedIdent "Students" "StudentNr")))))
+                                 (Syn.BitExpr
+                                  (Syn.SimpleExpr
+                                   (Syn.SymbolicE 1)))))
+  })  

@@ -52,6 +52,7 @@ data LToken = LTokAdd           -- ADD (R)
             | LTokInt           -- INT (R)
             | LTokInteger       -- INTEGER (R)
             | LTokInterval      -- INTERVAL (R)
+            | LTokInto          -- INTO (R)
             -- | LTokIs            -- IS (R)
             | LTokJoin          -- JOIN (R)
             | LTokKey           -- KEY (R)
@@ -214,6 +215,7 @@ instance Show LToken where
   show LTokInt          = "INT"
   show LTokInteger      = "INTEGER"
   show LTokInterval     = "INTERVAL"
+  show LTokInto         = "INTO"
   -- show LTokIs         = "IS"
   show LTokJoin         = "JOIN"
   show LTokKey          = "KEY"

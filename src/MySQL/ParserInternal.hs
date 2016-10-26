@@ -641,3 +641,23 @@ parseSelect = do
                           , Syn.selectTabRefs = tableRefs
                           , Syn.selectWhereCond = Nothing
                           }
+
+-- Insert Stmts
+--
+-- parseInsert :: Parser Syn.InsertStmt
+-- parseInsert = do
+--   tok' Tok.LTokInsert
+--   try (tok' Tok.LTokInto) <|> pure ()
+--   (Tok.LTokIdent tblName) <- anyIdent
+
+-- Delete Stmts
+--
+parseDelete :: Parser Syn.DeleteStmt
+parseDelete = do
+  tok' Tok.LTokDelete
+  tok' Tok.LTokFrom
+  tblName <- identConvert <$> anyIdent
+  whereCond <- Just <$> try whereExpr <|> return Nothing
+  return $ Syn.Delete { Syn.deleteTblName = tblName
+                      , Syn.deleteWhereCond = whereCond
+                      }

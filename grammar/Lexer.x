@@ -177,6 +177,7 @@ ident s = case (fmap toLower s) of
        "int" -> LTokInt
        "integer" -> LTokInteger
        "interval" -> LTokInterval
+       "into" -> LTokInto
        "is" -> LTokIs
        "join" -> LTokJoin
        "key" -> LTokKey
