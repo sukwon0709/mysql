@@ -30,6 +30,20 @@ $longstr = \0-\255
 @idents = $letter $identletter*
 @idents_star = @idents|"*"
 
+@dbtblcol1 = @idents "." @idents "." @idents_star
+@dbtblcol2 = @idents "." @idents "." \`@idents\`
+@dbtblcol3 = @idents "." \`@idents\` "." @idents_star
+@dbtblcol4 = \`@idents\` "." @idents "." @idents_star
+@dbtblcol5 = @idents "." \`@idents\` "." \`@idents\`
+@dbtblcol6 = \`@idents\` "." @idents "." \`@idents\`
+@dbtblcol7 = \`@idents\` "." \`@idents\` "." @idents_star
+@dbtblcol8 = \`@idents\` "." \`@idents\` "." \`@idents\`
+
+@tblcol1 = @idents "." @idents_star
+@tblcol2 = @idents "." \`@idents\`
+@tblcol3 = \`@idents\` "." @idents_star
+@tblcol4 = \`@idents\` "." \`@idents\`
+
 tokens :-
 
        <0> $white+                      ;
@@ -63,17 +77,16 @@ tokens :-
        -- Note
        -- * May begin with a digit but unless quoted, may not consist sorely of digits.
        --
-       <0> @idents "." @idents "." @idents_star
-                                        { \s -> let [s1, s2, s3] = splitOn "." s
+       <0> @dbtblcol1|@dbtblcol2|@dbtblcol3|@dbtblcol4|@dbtblcol5|@dbtblcol6|@dbtblcol7|@dbtblcol8
+                                        { \s -> let [s1, s2, s3] = splitOn "." (filter (/= '`') s)
                                                 in LTokIdent $ LIdentDoubleQualifiedToken s1 s2 s3
                                         }
-       <0> @idents "." @idents_star     { \s -> let [s1, s2] = splitOn "." s
-                                                in LTokIdent $ LIdentQualifiedToken s1 s2
-                                        }
 
-       --<0> \` $letter $identletter* \`        { \s -> LTokIdent $ LIdentSimpleToken s }
-       --<0> $letter $identletter*      { ident }
-       
+       <0> @tblcol1|@tblcol2|@tblcol3|@tblcol4
+					{ \s -> let [s1, s2] = splitOn "." (filter (/= '`') s)
+                                                in LTokIdent $ LIdentQualifiedToken s1 s2
+                                        }       
+
        <0> \`@idents_star\`             { \s -> LTokIdent $ LIdentSimpleToken (filter (/= '`') s) }
        <0> @idents_star                 { ident }
 

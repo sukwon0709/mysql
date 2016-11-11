@@ -3,6 +3,8 @@ module ParserTest where
 import           Test.Tasty
 import           Test.Tasty.HUnit
 import           Text.Parsec.Prim
+import           Text.Parsec.Error
+import           Text.Parsec.Pos
 
 import qualified MySQL.Lexer          as Lex
 import           MySQL.ParserInternal
@@ -16,7 +18,7 @@ testCases = [ts1, ts2, ts3, ts4, ts5,
              ts11, ts12, ts13, ts14, ts15,
              ts16, ts17, ts18, ts19, ts20,
              ts21, ts22, ts23, ts24, ts25,
-             ts26, ts27, ts28, ts29]
+             ts26, ts27, ts28, ts29, ts30]
 
 -- ts1 :: TestTree
 -- ts1 = testCase "Create Table1" $ parseTest createTableStmt $
@@ -909,3 +911,14 @@ ts29 = testCase "Update1" $
       ]
   , Syn.updateWhereCond = Nothing
   })
+
+ts30 :: TestTree
+ts30 = testCase "Failure Case 1" $
+  (parse parseSelect ""
+   (Lex.alexScanTokens $ "select info.*, employees.*, punchlist.* \
+              \ from info, employees, punchlist \
+              \ where info.timestamp = employees.tstamp and info.fullname = employees.empfullname \
+              \ and info.`inout` = punchlist.punchitems and employees.disabled <> '1' \
+              \ and employees.empfullname <> 'admin' \
+              \ order by `fullname`"))
+  @?= Left (newErrorUnknown (newPos "" 0 0))
