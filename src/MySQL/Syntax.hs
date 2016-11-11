@@ -109,15 +109,15 @@ data ColumnDefinition = FieldDef { fieldType     :: DataType,
                                  }
                         deriving (Eq, Show)
 
-data DataType = DTypeBit (Maybe Integer)                    -- BIT [(length)]
-              | DTypeTinyInt (Maybe Integer)                -- TINYINT [(length)]
-              | DTypeSmallInt (Maybe Integer)               -- SMALLINT [(length)]
-              | DTypeMediumInt (Maybe Integer)              -- MEDIUMINT [(lenght)]
-              | DTypeInt (Maybe Integer)                    -- INT [(length)]
-              | DTypeInteger (Maybe Integer)                -- INTEGER [(length)]
-              | DTypeBigInt (Maybe Integer)                 -- BIGINT [(length)]
-              | DTypeChar (Maybe Integer)                   -- CHAR [(length)]
-              | DTypeVarChar (Maybe Integer)                -- VARCHAR [(length)]
+data DataType = DTypeBit { colLen :: (Maybe Integer) }                   -- BIT [(length)]
+              | DTypeTinyInt { colLen :: (Maybe Integer) }               -- TINYINT [(length)]
+              | DTypeSmallInt { colLen :: (Maybe Integer) }              -- SMALLINT [(length)]
+              | DTypeMediumInt { colLen :: (Maybe Integer) }             -- MEDIUMINT [(lenght)]
+              | DTypeInt { colLen :: (Maybe Integer) }                   -- INT [(length)]
+              | DTypeInteger { colLen :: (Maybe Integer) }               -- INTEGER [(length)]
+              | DTypeBigInt { colLen :: (Maybe Integer) }                -- BIGINT [(length)]
+              | DTypeChar { colLen :: (Maybe Integer) }                  -- CHAR [(length)]
+              | DTypeVarChar { colLen :: (Maybe Integer) }               -- VARCHAR [(length)]
               deriving (Eq, Show)
 
 
